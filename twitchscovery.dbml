@@ -1,0 +1,107 @@
+// Table des utilisateurs avec authentification Twitch
+Table utilisateur {
+  id varchar [pk]
+  email varchar
+  username varchar
+  twitch_id varchar
+  twitch_token varchar
+  date_creation datetime
+  is_connected boolean
+  preferences jsonb
+}
+
+// Table pour les filtres de recherche sauvegardés
+Table filtres_recherche {
+  id varchar [pk]
+  user_id varchar [ref: > utilisateur.id]
+  nom_filtre varchar
+  pays varchar
+  jeu varchar
+  categorie varchar
+  nb_viewers_min integer
+  nb_viewers_max integer
+  date_creation datetime
+  is_default boolean
+}
+
+// Table des chaînes favorites
+Table chaine_favorite {
+  id varchar [pk]
+  user_id varchar [ref: > utilisateur.id]
+  streamer_id varchar
+  streamer_name varchar
+  streamer_avatar varchar
+  date_ajout datetime
+  notification_active boolean
+}
+
+// Table de l'historique des recherches/découvertes
+Table historique_recherche {
+  id varchar [pk]
+  user_id varchar [ref: > utilisateur.id]
+  pays varchar
+  jeu varchar
+  categorie varchar
+  nb_viewers_min integer
+  nb_viewers_max integer
+  date_recherche datetime
+  resultat_streamer_id varchar
+  temps_visionnage integer
+}
+
+// Table pour le cache des streams Twitch
+Table stream_cache {
+  id varchar [pk]
+  streamer_id varchar
+  streamer_name varchar
+  titre varchar
+  jeu varchar
+  categorie varchar
+  nb_viewers integer
+  langue varchar
+  pays varchar
+  thumbnail_url varchar
+  embed_url varchar
+  date_mise_a_jour datetime
+  is_live boolean
+}
+
+// Table pour l'historique des commandes/interactions
+Table historique_commandes {
+  id varchar [pk]
+  user_id varchar [ref: > utilisateur.id]
+  type_commande varchar
+  details jsonb
+  date_commande datetime
+  statut varchar
+}
+
+// Table pour les votes/classements
+Table vote_classement {
+  id varchar [pk]
+  user_id varchar [ref: > utilisateur.id]
+  streamer_id varchar
+  type_vote varchar
+  valeur integer
+  date_vote datetime
+}
+
+// Table pour les interactions chat
+Table interaction_chat {
+  id varchar [pk]
+  user_id varchar [ref: > utilisateur.id]
+  streamer_id varchar
+  message text
+  date_interaction datetime
+  type_interaction varchar
+}
+
+// Table pour les follows/subs via API Twitch
+Table follow_sub_action {
+  id varchar [pk]
+  user_id varchar [ref: > utilisateur.id]
+  streamer_id varchar
+  type_action varchar
+  date_action datetime
+  statut varchar
+}
