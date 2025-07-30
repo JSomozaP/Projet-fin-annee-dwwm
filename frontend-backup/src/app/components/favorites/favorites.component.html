@@ -1,0 +1,87 @@
+<div class="favorites-container">
+  <div class="favorites-header">
+    <h1 class="page-title">Mes Favoris</h1>
+    <p class="page-description">
+      Retrouvez tous vos streamers préférés en un coup d'œil
+    </p>
+  </div>
+
+  <!-- Erreur -->
+  <div *ngIf="error" class="alert alert-danger">
+    <span class="icon-error">⚠️</span>
+    {{ error }}
+    <button class="btn-close" (click)="error = null">×</button>
+  </div>
+
+  <!-- Non authentifié -->
+  <div *ngIf="!isAuthenticated" class="auth-required">
+    <div class="auth-content">
+      <span class="icon-lock">🔒</span>
+      <h2>Connexion requise</h2>
+      <p>Connectez-vous avec votre compte Twitch pour voir vos favoris</p>
+    </div>
+  </div>
+
+  <!-- État de chargement -->
+  <div *ngIf="isAuthenticated && isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Chargement de vos favoris...</p>
+  </div>
+
+  <!-- Liste vide -->
+  <div *ngIf="isAuthenticated && !isLoading && favorites.length === 0" class="empty-state">
+    <div class="empty-content">
+      <span class="icon-empty">💫</span>
+      <h2>Aucun favori pour le moment</h2>
+      <p>Découvrez de nouveaux streamers et ajoutez-les à vos favoris !</p>
+      <a routerLink="/discovery" class="btn btn-primary">
+        <span class="icon-discover">🔍</span>
+        Découvrir des streams
+      </a>
+    </div>
+  </div>
+
+  <!-- Liste des favoris -->
+  <div *ngIf="isAuthenticated && !isLoading && favorites.length > 0" class="favorites-grid">
+    <div *ngFor="let favorite of favorites" class="favorite-card">
+      <div class="favorite-header">
+        <div class="favorite-info">
+          <h3 class="streamer-name">{{ favorite.streamerName }}</h3>
+          <p class="streamer-id">Streamer ID: {{ favorite.streamerId }}</p>
+        </div>
+        <button 
+          class="btn-remove"
+          (click)="removeFavorite(favorite.streamerId)"
+          title="Retirer des favoris"
+        >
+          <span class="icon-remove">❌</span>
+        </button>
+      </div>
+
+      <div class="favorite-meta">
+        <span class="added-date">
+          <span class="icon-calendar">📅</span>
+          Ajouté le {{ formatDate(favorite.dateAjout) }}
+        </span>
+      </div>
+
+      <div class="favorite-actions">
+        <button 
+          class="btn btn-primary btn-full"
+          (click)="openStreamerChannel(favorite.streamerName)"
+        >
+          <span class="icon-twitch">🎮</span>
+          Voir sur Twitch
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistiques -->
+  <div *ngIf="isAuthenticated && !isLoading && favorites.length > 0" class="favorites-stats">
+    <div class="stats-card">
+      <span class="stats-number">{{ favorites.length }}</span>
+      <span class="stats-label">Streamer{{ favorites.length > 1 ? 's' : '' }} favori{{ favorites.length > 1 ? 's' : '' }}</span>
+    </div>
+  </div>
+</div>

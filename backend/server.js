@@ -1,14 +1,18 @@
 const express = require('express');
 const cors = require('cors');
+const { testConnection } = require('./src/config/database');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3001; // Changé le port par défaut
+const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Test de la connexion à la base de données au démarrage
+testConnection();
 
 // Routes
 app.get('/', (req, res) => {
@@ -16,26 +20,30 @@ app.get('/', (req, res) => {
     message: 'Twitchscovery API is running!',
     version: '1.0.0',
     endpoints: {
+      auth: '/api/auth',
       streams: '/api/streams',
+      favorites: '/api/favorites',
       randomStream: '/api/streams/random',
-      searchGame: '/api/streams/search-game'
+      searchGame: '/api/streams/search-game',
+      discover: '/api/streams/discover'
     }
   });
 });
 
 // Routes API
+app.use('/api/auth', require('./src/routes/auth'));
 app.use('/api/streams', require('./src/routes/streams'));
+app.use('/api/favorites', require('./src/routes/favorites'));
 
-// TODO: Ajouter d'autres routes quand MySQL sera configuré
-// app.use('/api/auth', require('./src/routes/auth'));
+// TODO: Ajouter d'autres routes
 // app.use('/api/users', require('./src/routes/users'));
-// app.use('/api/favorites', require('./src/routes/favorites'));
 
-// Démarrage simplifié sans MySQL pour l'instant
+// Démarrage du serveur avec MySQL configuré
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
   console.log(`📖 API Documentation: http://localhost:${PORT}`);
-  console.log(`🎮 Test random stream: http://localhost:${PORT}/api/streams/random`);
+  console.log(`🔐 Auth endpoint: http://localhost:${PORT}/api/auth/twitch`);
+  console.log(`🎮 Random stream: http://localhost:${PORT}/api/streams/random`);
 });
 
 module.exports = app;

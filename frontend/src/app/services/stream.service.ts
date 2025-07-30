@@ -1,83 +1,64 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface Stream {
-  id: string;
-  user_id: string;
-  user_login: string;
-  user_name: string;
-  game_id: string;
-  game_name: string;
-  type: string;
-  title: string;
-  viewer_count: number;
-  started_at: string;
-  language: string;
-  thumbnail_url: string;
-  tag_ids: string[];
-  is_mature: boolean;
+  streamerId: string;
+  streamerName: string;
+  titre: string;
+  jeu: string;
+  categorie: string;
+  langue: string;
+  pays?: string;
+  nbViewers: number;
+  thumbnailUrl: string;
+  embedUrl: string;
 }
 
 export interface ApiResponse<T> {
   success: boolean;
-  data: T;
-  message?: string;
-  count?: number;
-}
-
-export interface StreamFilters {
-  language?: string;
-  minViewers?: number;
-  maxViewers?: number;
-  game?: string;
-  limit?: number;
+  data?: T;
+  error?: string;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class StreamService {
-  private apiUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient
+  ) {}
 
-  // Obtenir un stream aléatoire
-  getRandomStream(filters?: StreamFilters): Observable<ApiResponse<Stream>> {
-    let params = new HttpParams();
-    
-    if (filters) {
-      Object.keys(filters).forEach(key => {
-        const value = filters[key as keyof StreamFilters];
-        if (value !== undefined && value !== null) {
-          params = params.set(key, value.toString());
-        }
-      });
-    }
-
-    return this.http.get<ApiResponse<Stream>>(`${this.apiUrl}/streams/random`, { params });
+  private getAuthHeaders(): HttpHeaders {
+    const token = localStorage.getItem('access_token');
+    return new HttpHeaders({
+      'Authorization': token ? `Bearer ${token}` : '',
+      'Content-Type': 'application/json'
+    });
   }
 
-  // Obtenir tous les streams
-  getStreams(filters?: StreamFilters): Observable<ApiResponse<Stream[]>> {
-    let params = new HttpParams();
-    
-    if (filters) {
-      Object.keys(filters).forEach(key => {
-        const value = filters[key as keyof StreamFilters];
-        if (value !== undefined && value !== null) {
-          params = params.set(key, value.toString());
-        }
-      });
-    }
-
-    return this.http.get<ApiResponse<Stream[]>>(`${this.apiUrl}/streams`, { params });
+  discoverStream(): Observable<ApiResponse<Stream>> {
+    const headers = this.getAuthHeaders();
+    return this.http.get<ApiResponse<Stream>>(`${environment.apiUrl}/streams/discover`, { headers });
   }
 
-  // Rechercher un jeu
-  searchGame(gameName: string): Observable<ApiResponse<any>> {
-    const params = new HttpParams().set('name', gameName);
-    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/streams/search-game`, { params });
+  getRandomStream(): Observable<ApiResponse<Stream>> {
+    const headers = this.getAuthHeaders();
+    return this.http.get<ApiResponse<Stream>>(`${environment.apiUrl}/streams/random`, { headers });
+  }
+
+  formatViewerCount(count: number): string {
+    if (count >= 1000000) {
+      return `${(count / 1000000).toFixed(1)}M`;
+    } else if (count >= 1000) {
+      return `${(count / 1000).toFixed(1)}K`;
+    }
+    return count.toString();
+  }
+
+  getTwitchUrl(streamerName: string): string {
+    return `https://www.twitch.tv/${streamerName}`;
   }
 }

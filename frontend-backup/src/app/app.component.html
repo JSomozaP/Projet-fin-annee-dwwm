@@ -1,0 +1,66 @@
+<!-- Navigation Header -->
+<header class="navbar">
+  <div class="navbar-container">
+    <!-- Logo & Brand -->
+    <div class="navbar-brand">
+      <h1 class="brand-logo">
+        <span class="brand-name">Twitchscovery</span>
+        <span class="brand-tagline">Discover • Connect • Explore</span>
+      </h1>
+    </div>
+
+    <!-- Navigation Links -->
+    <nav class="navbar-nav">
+      <a routerLink="/discovery" routerLinkActive="nav-active" class="nav-link">
+        <i class="icon-discover"></i>
+        Découvrir
+      </a>
+      <a routerLink="/favorites" routerLinkActive="nav-active" class="nav-link" *ngIf="isAuthenticated">
+        <i class="icon-heart"></i>
+        Favoris
+        <span class="badge" *ngIf="favoriteCount > 0">{{ favoriteCount }}</span>
+      </a>
+    </nav>
+
+    <!-- User Actions -->
+    <div class="navbar-actions">
+      <ng-container *ngIf="!isAuthenticated">
+        <button class="btn btn-outline" (click)="login()">
+          <i class="icon-twitch"></i>
+          Se connecter
+        </button>
+      </ng-container>
+      
+      <ng-container *ngIf="isAuthenticated && user">
+        <div class="user-menu">
+          <div class="user-avatar">
+            <img [src]="user.avatar_url || '/assets/default-avatar.png'" [alt]="user.username">
+          </div>
+          <span class="user-name">{{ user.username }}</span>
+          <button class="btn btn-ghost" (click)="logout()">
+            <i class="icon-logout"></i>
+          </button>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="main-content">
+  <router-outlet></router-outlet>
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-brand">
+      <span class="text-muted">Twitchscovery © 2025</span>
+    </div>
+    <div class="footer-links">
+      <a href="javascript:void(0)" class="footer-link" (click)="openAbout()">À propos</a>
+      <a href="javascript:void(0)" class="footer-link" (click)="openPrivacy()">Confidentialité</a>
+      <a href="javascript:void(0)" class="footer-link" (click)="openContact()">Contact</a>
+    </div>
+  </div>
+</footer>

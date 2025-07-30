@@ -1,148 +1,173 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SecurityContext, inject } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
-import { StreamService, Stream, StreamFilters } from '../../services/stream.service';
 
 @Component({
   selector: 'app-stream-viewer',
   standalone: true,
-  imports: [CommonModule, HttpClientModule],
+  imports: [CommonModule],
   template: `
-    <div class="stream-viewer">
-      <h2>Découverte de streamers</h2>
-      
-      <div class="controls">
-        <button (click)="getRandomStream()" [disabled]="loading">
-          {{ loading ? 'Recherche...' : 'Stream aléatoire' }}
-        </button>
-      </div>
-
-      <div *ngIf="error" class="error">
-        {{ error }}
-      </div>
-
-      <div *ngIf="currentStream" class="stream-info">
-        <h3>{{ currentStream.user_name }}</h3>
-        <p><strong>Jeu:</strong> {{ currentStream.game_name }}</p>
-        <p><strong>Titre:</strong> {{ currentStream.title }}</p>
-        <p><strong>Viewers:</strong> {{ currentStream.viewer_count }}</p>
-        <p><strong>Langue:</strong> {{ currentStream.language }}</p>
-        
+    <div class="stream-viewer" *ngIf="streamerName">
+      <div class="stream-container">
+        <!-- Stream embed -->
         <div class="stream-embed">
           <iframe 
-            [src]="getEmbedUrl()"
-            width="800" 
-            height="450" 
-            frameborder="0" 
-            scrolling="no" 
-            allowfullscreen="true">
+            [src]="streamEmbedUrl"
+            frameborder="0"
+            allowfullscreen
+            scrolling="no">
           </iframe>
         </div>
+        
+        <!-- Chat embed -->
+        <div class="chat-embed">
+          <iframe 
+            [src]="chatEmbedUrl"
+            frameborder="0"
+            scrolling="no">
+          </iframe>
+        </div>
+      </div>
+      
+      <!-- Controls -->
+      <div class="stream-controls">
+        <button class="btn btn-secondary" (click)="onCloseViewer()">
+          ← Retour à la découverte
+        </button>
+        <a [href]="twitchUrl" target="_blank" class="btn btn-outline">
+          Ouvrir sur Twitch ↗
+        </a>
       </div>
     </div>
   `,
   styles: [`
     .stream-viewer {
-      max-width: 1200px;
+      position: fixed; /* Position fixe pour sortir du flux normal */
+      top: 70px; /* Juste en dessous de la navbar */
+      left: 0;
+      right: 0;
+      bottom: 0; /* Prend toute la hauteur restante */
+      background: var(--bg-primary);
+      z-index: 999;
+      padding: var(--spacing-md);
+      overflow: auto;
+    }
+
+    .stream-container {
+      display: flex;
+      gap: 0;
       margin: 0 auto;
-      padding: 20px;
-    }
-
-    .controls {
-      margin: 20px 0;
-    }
-
-    button {
-      background-color: #9146ff;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-
-    button:hover:not(:disabled) {
-      background-color: #772ce8;
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .error {
-      background-color: #ff4444;
-      color: white;
-      padding: 10px;
-      border-radius: 6px;
-      margin: 10px 0;
-    }
-
-    .stream-info {
-      margin-top: 20px;
-    }
-
-    .stream-info h3 {
-      color: #9146ff;
-      margin-bottom: 10px;
-    }
-
-    .stream-info p {
-      margin: 5px 0;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      width: calc(100vw - 32px); /* Largeur maximale moins padding */
+      height: calc(100vh - 70px - 64px - 60px); /* Hauteur max moins navbar, padding et contrôles */
+      max-width: 1800px; /* Limite raisonnable pour très grands écrans */
     }
 
     .stream-embed {
-      margin-top: 20px;
+      flex: 3; /* 75% de l'espace pour le stream */
+      background: #000;
+      position: relative;
     }
 
-    iframe {
-      max-width: 100%;
-      height: auto;
+    .stream-embed iframe {
+      width: 100%;
+      height: 100%; /* Prend toute la hauteur du conteneur */
+      border: none;
+      display: block;
+    }
+
+    .chat-embed {
+      flex: 1; /* 25% de l'espace pour le chat */
+      background: var(--bg-secondary);
+      border-left: 1px solid var(--border-color);
+      position: relative;
+    }
+
+    .chat-embed iframe {
+      width: 100%;
+      height: 100%; /* Prend toute la hauteur du conteneur */
+      border: none;
+      display: block;
+    }
+
+    .stream-controls {
+      display: flex;
+      gap: var(--spacing-md);
+      justify-content: center;
+      margin-top: var(--spacing-md);
+      padding: var(--spacing-md);
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: var(--radius-md);
+    }
+
+    @media (max-width: 1200px) {
+      .stream-viewer {
+        position: static; /* Retour en position normale sur mobile */
+        padding: var(--spacing-sm);
+      }
+      
+      .stream-container {
+        flex-direction: column;
+        height: auto;
+        width: 100%;
+        max-width: none;
+      }
+      
+      .stream-embed {
+        flex: none;
+      }
+      
+      .chat-embed {
+        flex: none;
+        border-left: none;
+        border-top: 1px solid var(--border-color);
+        height: 400px; /* Hauteur fixe pour le chat sur mobile */
+      }
+      
+      .chat-embed iframe {
+        height: 400px;
+      }
+      
+      .stream-embed iframe {
+        height: 450px; /* Hauteur pour le stream sur mobile */
+      }
     }
   `]
 })
-export class StreamViewerComponent implements OnInit {
-  currentStream: Stream | null = null;
-  loading = false;
-  error: string | null = null;
+export class StreamViewerComponent implements OnInit, OnChanges {
+  @Input() streamerName: string = '';
+  @Output() closeViewer = new EventEmitter<void>();
+  
+  streamEmbedUrl: SafeResourceUrl | null = null;
+  chatEmbedUrl: SafeResourceUrl | null = null;
+  twitchUrl: string = '';
 
-  constructor(private streamService: StreamService) {}
+  private sanitizer = inject(DomSanitizer);
 
-  ngOnInit() {
-    // Charger un stream par défaut
-    this.getRandomStream();
+  ngOnInit(): void {
+    if (this.streamerName) {
+      this.setupUrls();
+    }
   }
 
-  getRandomStream() {
-    this.loading = true;
-    this.error = null;
-
-    const filters: StreamFilters = {
-      language: 'fr',
-      minViewers: 1,
-      maxViewers: 1000
-    };
-
-    this.streamService.getRandomStream(filters).subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.currentStream = response.data;
-        } else {
-          this.error = response.message || 'Erreur lors de la récupération du stream';
-        }
-        this.loading = false;
-      },
-      error: (err) => {
-        this.error = 'Erreur de connexion avec l\'API';
-        this.loading = false;
-        console.error('Erreur API:', err);
-      }
-    });
+  ngOnChanges(): void {
+    if (this.streamerName) {
+      this.setupUrls();
+    }
   }
 
-  getEmbedUrl(): string {
-    if (!this.currentStream) return '';
-    return `https://player.twitch.tv/?channel=${this.currentStream.user_login}&parent=localhost`;
+  private setupUrls(): void {
+    const streamUrl = `https://player.twitch.tv/?channel=${this.streamerName}&parent=localhost&autoplay=true`;
+    const chatUrl = `https://www.twitch.tv/embed/${this.streamerName}/chat?parent=localhost`;
+    
+    this.streamEmbedUrl = this.sanitizer.bypassSecurityTrustResourceUrl(streamUrl);
+    this.chatEmbedUrl = this.sanitizer.bypassSecurityTrustResourceUrl(chatUrl);
+    this.twitchUrl = `https://www.twitch.tv/${this.streamerName}`;
+  }
+
+  onCloseViewer(): void {
+    this.closeViewer.emit();
   }
 }

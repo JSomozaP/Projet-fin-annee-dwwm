@@ -1,0 +1,104 @@
+<div class="discovery-container">
+  <div class="discovery-header">
+    <h1 class="page-title">Découverte de Streams</h1>
+    <p class="page-description">
+      Découvrez de nouveaux streamers et ajoutez-les à vos favoris !
+    </p>
+  </div>
+
+  <!-- Erreur -->
+  <div *ngIf="error" class="alert alert-danger">
+    <span class="icon-error">⚠️</span>
+    {{ error }}
+    <button class="btn-close" (click)="error = null">×</button>
+  </div>
+
+  <!-- État de chargement -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Recherche d'un nouveau stream...</p>
+  </div>
+
+  <!-- Stream découvert -->
+  <div *ngIf="currentStream && !isLoading" class="stream-card">
+    <div class="stream-thumbnail">
+      <img 
+        [src]="currentStream.thumbnailUrl" 
+        [alt]="currentStream.titre"
+        class="thumbnail-image"
+        onerror="this.src='https://via.placeholder.com/320x180/1a1a2e/ffffff?text=Pas+d%27image'"
+      >
+      <div class="stream-overlay">
+        <div class="viewer-count">
+          <span class="icon-viewers">👁️</span>
+          {{ formatViewerCount(currentStream.nbViewers) }}
+        </div>
+        <div class="live-indicator">
+          <span class="live-dot"></span>
+          LIVE
+        </div>
+      </div>
+    </div>
+
+    <div class="stream-content">
+      <div class="stream-header">
+        <h2 class="stream-title">{{ currentStream.titre }}</h2>
+        <div class="stream-meta">
+          <span class="streamer-name">{{ currentStream.streamerName }}</span>
+          <span class="divider">•</span>
+          <span class="game-name">{{ currentStream.jeu }}</span>
+        </div>
+      </div>
+
+      <div class="stream-tags">
+        <span class="tag tag-category">{{ currentStream.categorie }}</span>
+        <span class="tag tag-language">{{ currentStream.langue }}</span>
+        <span *ngIf="currentStream.pays" class="tag tag-country">{{ currentStream.pays }}</span>
+      </div>
+
+      <div class="stream-actions">
+        <button 
+          class="btn btn-primary btn-large"
+          (click)="openStream()"
+          [disabled]="!currentStream.embedUrl"
+        >
+          <span class="icon-play">▶️</span>
+          Regarder le Stream
+        </button>
+
+        <button 
+          *ngIf="isAuthenticated"
+          class="btn btn-favorite"
+          [class.btn-favorited]="isFavorite"
+          (click)="toggleFavorite()"
+        >
+          <span class="icon-heart">{{ isFavorite ? '❤️' : '🤍' }}</span>
+          {{ isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bouton Suivant -->
+  <div class="discovery-actions">
+    <button 
+      class="btn btn-secondary btn-large"
+      (click)="discoverStream()"
+      [disabled]="isLoading"
+    >
+      <span class="icon-next">🔄</span>
+      {{ isLoading ? 'Recherche...' : 'Découvrir un autre stream' }}
+    </button>
+  </div>
+
+  <!-- Message si pas authentifié -->
+  <div *ngIf="!isAuthenticated" class="auth-notice">
+    <div class="notice-content">
+      <span class="icon-info">ℹ️</span>
+      <div>
+        <h3>Connectez-vous pour plus de fonctionnalités</h3>
+        <p>Ajoutez des streamers à vos favoris et retrouvez-les facilement !</p>
+      </div>
+    </div>
+  </div>
+</div>
