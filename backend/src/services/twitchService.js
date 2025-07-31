@@ -1,5 +1,7 @@
 const axios = require('axios');
 const { StreamCache } = require('../models');
+const gameCache = require('./gameCache');
+const streamCacheManager = require('./streamCacheManager');
 require('dotenv').config();
 
 class TwitchService {
@@ -9,6 +11,11 @@ class TwitchService {
     this.accessToken = null;
     this.tokenExpiry = null;
     this.baseURL = 'https://api.twitch.tv/helix';
+    
+    // Nettoyage automatique du cache toutes les 10 minutes
+    setInterval(() => {
+      streamCacheManager.cleanExpiredCaches();
+    }, 10 * 60 * 1000);
   }
 
   // Obtenir un token d'accès pour l'API Twitch
@@ -143,13 +150,24 @@ class TwitchService {
     }
   }
 
-  // Rechercher des jeux par nom (pour autocomplete)
+  // Rechercher des jeux par nom (pour autocomplete) - OPTIMISÉ
   async searchGames(query) {
+    console.log(`🎮 Recherche de jeux optimisée: ${query}`);
+    
+    // 1. Chercher d'abord dans le cache des jeux populaires
+    const cachedResults = gameCache.searchGames(query);
+    if (cachedResults.length > 0) {
+      console.log(`✅ ${cachedResults.length} jeux trouvés dans le cache`);
+      return cachedResults;
+    }
+    
+    // 2. Si pas trouvé dans le cache, faire un appel API
     if (!this.accessToken) {
       await this.getAccessToken();
     }
 
     try {
+      console.log(`🌐 Appel API Twitch pour: ${query}`);
       // Utilisation de l'endpoint /search/categories qui permet la recherche dans tout le catalogue
       const response = await axios.get(`${this.baseURL}/search/categories`, {
         headers: {
@@ -158,45 +176,42 @@ class TwitchService {
         },
         params: {
           query: query,
-          first: 20 // Limite raisonnable pour les suggestions
+          first: 10 // Réduit de 20 à 10 pour limiter les données
         }
       });
 
       // Retourner les noms des jeux/catégories trouvés
-      return response.data.data.map(game => game.name);
+      const games = response.data.data.map(game => game.name);
+      
+      // 3. Mettre en cache le résultat
+      gameCache.cacheApiResults(query, games);
+      
+      return games;
     } catch (error) {
       console.error('❌ Erreur lors de la recherche de jeux:', error.message);
-      // Fallback vers la méthode précédente si l'API search ne fonctionne pas
-      try {
-        const response = await axios.get(`${this.baseURL}/games/top`, {
-          headers: {
-            'Client-ID': this.clientId,
-            'Authorization': `Bearer ${this.accessToken}`
-          },
-          params: {
-            first: 100
-          }
-        });
-
-        const games = response.data.data.filter(game => 
-          game.name.toLowerCase().includes(query.toLowerCase())
-        );
-
-        return games.map(game => game.name).slice(0, 10);
-      } catch (fallbackError) {
-        console.error('❌ Erreur fallback:', fallbackError.message);
-        throw error;
-      }
+      // Fallback vers le cache même si partiel
+      return cachedResults;
     }
   }
 
-  // Rechercher un jeu spécifique par nom (retourne l'objet jeu complet)
+  // Rechercher un jeu spécifique par nom (retourne l'objet jeu complet) - OPTIMISÉ
   async searchGame(gameName) {
+    console.log(`🎯 Recherche jeu spécifique: ${gameName}`);
+    
+    // 1. Chercher d'abord dans le cache des jeux populaires
+    const cachedGame = gameCache.getGameByName(gameName);
+    if (cachedGame) {
+      console.log(`✅ Jeu trouvé dans le cache: ${cachedGame.name}`);
+      return cachedGame;
+    }
+    
+    // 2. Faire un appel API seulement si nécessaire
     if (!this.accessToken) {
       await this.getAccessToken();
     }
 
     try {
+      console.log(`🌐 Appel API pour jeu: ${gameName}`);
       const response = await axios.get(`${this.baseURL}/games`, {
         headers: {
           'Client-ID': this.clientId,
@@ -253,14 +268,22 @@ class TwitchService {
     }
   }
 
-    // Découverte intelligente avec filtres (cœur de l'application)
+  // Découverte intelligente avec filtres (cœur de l'application) - OPTIMISÉ
   async discoverStream(filters = {}) {
     try {
       console.log('💫 Recherche de streams avec filtres:', filters);
       
+      // 1. Essayer d'abord le cache
+      const cachedStreams = await streamCacheManager.getStreamsFromPool(filters);
+      if (cachedStreams && cachedStreams.length > 0) {
+        console.log(`🎯 Stream trouvé dans le cache: ${cachedStreams.length} disponibles`);
+        const randomStream = cachedStreams[Math.floor(Math.random() * cachedStreams.length)];
+        return this.formatStreamForFrontend(randomStream);
+      }
+      
       let allStreams = [];
       
-      // Stratégie différente selon le type de recherche
+      // 2. Stratégie différente selon le type de recherche
       if (filters.maxViewers && parseInt(filters.maxViewers) < 100) {
         // Pour les petits streamers : rechercher dans des jeux moins populaires
         allStreams = await this.getSmallStreams(filters);
@@ -273,6 +296,9 @@ class TwitchService {
         console.log('❌ Aucun stream trouvé');
         return null;
       }
+
+      // 3. Mettre à jour le cache avec les nouveaux streams
+      streamCacheManager.updateStreamPool(filters, allStreams);
 
       console.log(`📊 ${allStreams.length} streams trouvés pour filtrage`);
 

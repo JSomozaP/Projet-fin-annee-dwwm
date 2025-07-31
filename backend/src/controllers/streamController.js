@@ -195,10 +195,15 @@ class StreamController {
   async getCacheStats(req, res) {
     try {
       const stats = await twitchService.getCacheStats();
+      const gameCache = require('../services/gameCache');
       
       res.json({
         success: true,
-        data: stats,
+        data: {
+          ...stats,
+          streamCacheStats: require('../services/streamCacheManager').getCacheStats(),
+          gameCacheStats: gameCache.getStats()
+        },
         message: 'Statistiques du cache récupérées'
       });
     } catch (error) {
@@ -206,6 +211,28 @@ class StreamController {
       res.status(500).json({
         success: false,
         message: 'Erreur lors de la récupération des statistiques',
+        error: error.message
+      });
+    }
+  }
+
+  // Forcer la mise à jour du cache des jeux populaires (admin)
+  async updateGameCache(req, res) {
+    try {
+      console.log('🔧 Mise à jour forcée du cache des jeux populaires...');
+      const gameCache = require('../services/gameCache');
+      await gameCache.forceUpdate();
+      
+      res.json({
+        success: true,
+        message: 'Cache des jeux populaires mis à jour avec succès',
+        data: gameCache.getStats()
+      });
+    } catch (error) {
+      console.error('Erreur dans updateGameCache:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la mise à jour du cache des jeux',
         error: error.message
       });
     }

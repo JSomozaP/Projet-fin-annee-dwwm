@@ -23,4 +23,7 @@ router.post('/cache/refresh', streamController.refreshCache);
 // GET /api/streams/cache/stats - Statistiques du cache
 router.get('/cache/stats', streamController.getCacheStats);
 
+// POST /api/streams/cache/update-games - Mettre à jour le cache des jeux populaires
+router.post('/cache/update-games', streamController.updateGameCache);
+
 module.exports = router;
