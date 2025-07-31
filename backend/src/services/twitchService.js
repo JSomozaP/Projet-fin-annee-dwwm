@@ -43,9 +43,13 @@ class TwitchService {
 
     try {
       const params = {
-        first: filters.limit || 100, // Plus de streams pour la découverte
-        language: filters.language || ['fr', 'en'] // Plusieurs langues
+        first: filters.limit || 100
       };
+
+      // Filtrer par langue comme demandé
+      if (filters.language) {
+        params.language = filters.language;
+      }
 
       if (filters.game_id) params.game_id = filters.game_id;
       if (filters.user_login) params.user_login = filters.user_login;
@@ -139,6 +143,77 @@ class TwitchService {
     }
   }
 
+  // Rechercher des jeux par nom (pour autocomplete)
+  async searchGames(query) {
+    if (!this.accessToken) {
+      await this.getAccessToken();
+    }
+
+    try {
+      // Utilisation de l'endpoint /search/categories qui permet la recherche dans tout le catalogue
+      const response = await axios.get(`${this.baseURL}/search/categories`, {
+        headers: {
+          'Client-ID': this.clientId,
+          'Authorization': `Bearer ${this.accessToken}`
+        },
+        params: {
+          query: query,
+          first: 20 // Limite raisonnable pour les suggestions
+        }
+      });
+
+      // Retourner les noms des jeux/catégories trouvés
+      return response.data.data.map(game => game.name);
+    } catch (error) {
+      console.error('❌ Erreur lors de la recherche de jeux:', error.message);
+      // Fallback vers la méthode précédente si l'API search ne fonctionne pas
+      try {
+        const response = await axios.get(`${this.baseURL}/games/top`, {
+          headers: {
+            'Client-ID': this.clientId,
+            'Authorization': `Bearer ${this.accessToken}`
+          },
+          params: {
+            first: 100
+          }
+        });
+
+        const games = response.data.data.filter(game => 
+          game.name.toLowerCase().includes(query.toLowerCase())
+        );
+
+        return games.map(game => game.name).slice(0, 10);
+      } catch (fallbackError) {
+        console.error('❌ Erreur fallback:', fallbackError.message);
+        throw error;
+      }
+    }
+  }
+
+  // Rechercher un jeu spécifique par nom (retourne l'objet jeu complet)
+  async searchGame(gameName) {
+    if (!this.accessToken) {
+      await this.getAccessToken();
+    }
+
+    try {
+      const response = await axios.get(`${this.baseURL}/games`, {
+        headers: {
+          'Client-ID': this.clientId,
+          'Authorization': `Bearer ${this.accessToken}`
+        },
+        params: {
+          name: gameName
+        }
+      });
+
+      return response.data.data[0] || null;
+    } catch (error) {
+      console.error('❌ Erreur lors de la recherche du jeu:', error.message);
+      return null;
+    }
+  }
+
   // Obtenir un stream aléatoire selon les filtres
   async getRandomStream(filters = {}) {
     try {
@@ -178,65 +253,105 @@ class TwitchService {
     }
   }
 
-  // Découverte intelligente avec filtres (cœur de l'application)
+    // Découverte intelligente avec filtres (cœur de l'application)
   async discoverStream(filters = {}) {
     try {
-      console.log('💫 Récupération de streams live depuis Twitch...');
+      console.log('💫 Recherche de streams avec filtres:', filters);
       
-      // Toujours récupérer les streams les plus récents depuis l'API Twitch
-      const apiFilters = {
-        limit: 100,
-        language: filters.language || 'fr'
-      };
+      let allStreams = [];
       
-      if (filters.game) {
-        const gameInfo = await this.getGameByName(filters.game);
-        if (gameInfo) apiFilters.game_id = gameInfo.id;
+      // Stratégie différente selon le type de recherche
+      if (filters.maxViewers && parseInt(filters.maxViewers) < 100) {
+        // Pour les petits streamers : rechercher dans des jeux moins populaires
+        allStreams = await this.getSmallStreams(filters);
+      } else {
+        // Recherche normale
+        allStreams = await this.getRegularStreams(filters);
       }
-
-      // Récupérer les streams live depuis Twitch
-      const liveStreams = await this.getStreams(apiFilters);
       
-      if (!liveStreams || liveStreams.length === 0) {
-        console.log('❌ Aucun stream live trouvé');
+      if (!allStreams || allStreams.length === 0) {
+        console.log('❌ Aucun stream trouvé');
         return null;
       }
 
-      // Filtrer par nombre de viewers si spécifié
-      let filteredStreams = liveStreams;
-      if (filters.minViewers) {
-        filteredStreams = filteredStreams.filter(stream => stream.viewer_count >= filters.minViewers);
+      console.log(`📊 ${allStreams.length} streams trouvés pour filtrage`);
+
+      // Debug: afficher quelques exemples de streams
+      if (allStreams.length > 0) {
+        console.log('🔍 Exemples de streams trouvés:');
+        allStreams.slice(0, 3).forEach(stream => {
+          console.log(`  - ${stream.user_name}: ${stream.viewer_count} viewers, ${stream.language}, ${stream.game_name}`);
+        });
       }
-      if (filters.maxViewers) {
-        filteredStreams = filteredStreams.filter(stream => stream.viewer_count <= filters.maxViewers);
+
+      // Filtrer par nombre de viewers
+      let filteredStreams = allStreams;
+      
+      // Filtrage par jeu si spécifié
+      if (filters.gameId) {
+        console.log(`🎮 Filtrage par jeu ID: ${filters.gameId}`);
+        const beforeFilter = filteredStreams.length;
+        filteredStreams = filteredStreams.filter(stream => stream.game_id === filters.gameId);
+        console.log(`  - ${beforeFilter} → ${filteredStreams.length} streams après filtrage par jeu`);
+      }
+      
+      // Filtrage par langue si spécifié
+      if (filters.language) {
+        console.log(`🌍 Filtrage par langue: ${filters.language}`);
+        const beforeFilter = filteredStreams.length;
+        filteredStreams = filteredStreams.filter(stream => stream.language === filters.language);
+        console.log(`  - ${beforeFilter} → ${filteredStreams.length} streams après filtrage par langue`);
+      }
+      
+      if (filters.minViewers !== undefined && filters.minViewers !== null) {
+        const minViewers = parseInt(filters.minViewers);
+        console.log(`🔢 Filtrage par minViewers: ${minViewers}`);
+        const beforeFilter = filteredStreams.length;
+        filteredStreams = filteredStreams.filter(stream => stream.viewer_count >= minViewers);
+        console.log(`  - ${beforeFilter} → ${filteredStreams.length} streams après filtrage minViewers`);
+      }
+      if (filters.maxViewers !== undefined && filters.maxViewers !== null) {
+        const maxViewers = parseInt(filters.maxViewers);
+        console.log(`🔢 Filtrage par maxViewers: ${maxViewers}`);
+        const beforeFilter = filteredStreams.length;
+        filteredStreams = filteredStreams.filter(stream => stream.viewer_count <= maxViewers);
+        console.log(`  - ${beforeFilter} → ${filteredStreams.length} streams après filtrage maxViewers`);
       }
 
       if (filteredStreams.length === 0) {
-        console.log('❌ Aucun stream ne correspond aux critères de viewers');
+        console.log('❌ Aucun stream ne correspond aux critères');
         return null;
       }
+
+      console.log(`✅ ${filteredStreams.length} streams correspondent aux critères`);
 
       // Sélectionner un stream aléatoire
       const randomStream = filteredStreams[Math.floor(Math.random() * filteredStreams.length)];
       
-      // Retourner le stream formaté
-      return {
-        streamerId: randomStream.user_id,
-        streamerName: randomStream.user_login,
-        titre: randomStream.title,
-        jeu: randomStream.game_name,
-        categorie: randomStream.game_name,
-        nbViewers: randomStream.viewer_count,
-        langue: randomStream.language,
-        pays: this.getCountryFromLanguage(randomStream.language),
-        thumbnailUrl: randomStream.thumbnail_url.replace('{width}x{height}', '640x360'),
-        embedUrl: `https://player.twitch.tv/?channel=${randomStream.user_login}&parent=localhost`,
-        chatUrl: `https://www.twitch.tv/embed/${randomStream.user_login}/chat?parent=localhost`
-      };
+      // Transformer le stream au format attendé par le frontend
+      return this.formatStreamForFrontend(randomStream);
     } catch (error) {
-      console.error('❌ Erreur découverte stream:', error.message);
+      console.error('❌ Erreur lors de la découverte du stream:', error.message);
       return null;
     }
+  }
+
+  // Transformer un stream Twitch au format attendé par le frontend
+  formatStreamForFrontend(twitchStream) {
+    if (!twitchStream) return null;
+    
+    return {
+      streamerId: twitchStream.user_id,
+      streamerName: twitchStream.user_name,
+      titre: twitchStream.title,
+      jeu: twitchStream.game_name,
+      categorie: twitchStream.game_name,
+      langue: twitchStream.language,
+      pays: this.getCountryFromLanguage(twitchStream.language),
+      nbViewers: twitchStream.viewer_count,
+      thumbnailUrl: twitchStream.thumbnail_url ? twitchStream.thumbnail_url.replace('{width}x{height}', '640x360') : '',
+      embedUrl: `https://player.twitch.tv/?channel=${twitchStream.user_login}`
+    };
   }
 
   // Nettoyer les anciens streams et rafraîchir le cache
@@ -313,6 +428,65 @@ class TwitchService {
       console.error('❌ Erreur récupération streamer:', error.message);
       return null;
     }
+  }
+
+  // Méthodes pour différentes stratégies de recherche
+  async getSmallStreams(filters) {
+    console.log('🔍 Recherche de petits streamers...');
+    
+    // Pour les petits streamers, on cherche dans des jeux moins populaires
+    const smallGames = [
+      'Art', 'Music', 'Poker', 'Slots', 'Chess', 'Pool', 
+      'Backgammon', 'Pictionary', 'Gartic Phone', 'Skribbl.io',
+      'Retro', 'Indie Games', 'Speedrunning', 'Variety'
+    ];
+    
+    let allStreams = [];
+    
+    // Si un jeu spécifique est demandé, l'utiliser
+    if (filters.gameId) {
+      const streams = await this.getStreams({
+        game_id: filters.gameId,
+        language: filters.language || 'fr',
+        first: 100
+      });
+      if (streams) allStreams = allStreams.concat(streams);
+    } else {
+      // Sinon, chercher dans plusieurs jeux moins populaires
+      for (const gameName of smallGames.slice(0, 3)) { // Limiter à 3 jeux pour éviter trop d'appels
+        try {
+          const gameInfo = await this.getGameByName(gameName);
+          if (gameInfo) {
+            const streams = await this.getStreams({
+              game_id: gameInfo.id,
+              language: filters.language || 'fr',
+              first: 50
+            });
+            if (streams) allStreams = allStreams.concat(streams);
+          }
+        } catch (error) {
+          console.log(`⚠️ Impossible de récupérer les streams pour ${gameName}`);
+        }
+      }
+    }
+    
+    return allStreams;
+  }
+
+  async getRegularStreams(filters) {
+    console.log('📺 Recherche de streams populaires...');
+    
+    const apiFilters = {
+      first: 100,
+      language: filters.language || 'fr'
+    };
+    
+    // Passer le gameId correctement à l'API
+    if (filters.gameId) {
+      apiFilters.game_id = filters.gameId;
+    }
+
+    return await this.getStreams(apiFilters);
   }
 }
 

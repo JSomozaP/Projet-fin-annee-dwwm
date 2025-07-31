@@ -14,6 +14,9 @@ router.get('/', streamController.getStreams);
 // GET /api/streams/search-game - Rechercher un jeu
 router.get('/search-game', streamController.searchGame);
 
+// GET /api/streams/games/search - Rechercher des jeux par nom (nouvelle route)
+router.get('/games/search', streamController.searchGames);
+
 // POST /api/streams/cache/refresh - Rafraîchir le cache
 router.post('/cache/refresh', streamController.refreshCache);
 

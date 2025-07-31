@@ -9,7 +9,7 @@ class StreamController {
         gameId, 
         game, // Support nom de jeu 
         language = 'fr', 
-        minViewers = 1, // 1 par défaut pour éviter les streams à 0 viewers
+        minViewers = 10,
         maxViewers = null,
         excludeIds = []
       } = req.query;
