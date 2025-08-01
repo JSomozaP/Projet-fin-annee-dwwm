@@ -17,10 +17,10 @@ class AuthController {
         `response_type=code&` +
         `scope=${scope}`;
 
-      res.json({ 
-        authUrl: twitchAuthUrl,
-        message: 'Redirection vers Twitch pour authentification'
-      });
+      console.log('🔗 Redirection vers Twitch OAuth:', twitchAuthUrl);
+      
+      // Redirection directe vers Twitch au lieu de retourner du JSON
+      res.redirect(twitchAuthUrl);
     } catch (error) {
       console.error('Erreur initiation auth:', error);
       res.status(500).json({ 
@@ -68,14 +68,17 @@ class AuthController {
       let user = await User.findByTwitchId(twitchUser.id);
       
       if (user) {
-        // Utilisateur existant - mise à jour du token
+        // Utilisateur existant - mise à jour du token et avatar
         await user.updateTwitchToken(tokenData.access_token);
         await user.updateConnectionStatus(true);
+        await user.updateAvatar(twitchUser.profile_image_url);
+        console.log('🔄 Utilisateur existant mis à jour avec avatar:', twitchUser.profile_image_url);
       } else {
         // Nouvel utilisateur
         user = await User.create({
           email: twitchUser.email,
           username: twitchUser.display_name || twitchUser.login,
+          avatarUrl: twitchUser.profile_image_url,
           twitchId: twitchUser.id,
           twitchToken: tokenData.access_token,
           preferences: {
@@ -92,7 +95,7 @@ class AuthController {
       // Redirection vers le frontend avec le token
       const frontendUrl = process.env.NODE_ENV === 'production' 
         ? 'https://your-domain.com' 
-        : 'http://localhost:4201';
+        : 'http://localhost:4200';
       
       res.redirect(`${frontendUrl}/auth/success?token=${jwtToken}`);
 
@@ -100,7 +103,7 @@ class AuthController {
       console.error('Erreur callback auth:', error);
       const frontendUrl = process.env.NODE_ENV === 'production' 
         ? 'https://your-domain.com' 
-        : 'http://localhost:4201';
+        : 'http://localhost:4200';
       
       res.redirect(`${frontendUrl}/auth/error?message=${encodeURIComponent(error.message)}`);
     }

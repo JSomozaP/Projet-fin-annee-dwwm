@@ -250,6 +250,18 @@ body {
   transform: translateY(-1px);
 }
 
+/* Style pour le bouton favorited */
+.btn-favorited {
+  background: linear-gradient(135deg, var(--error) 0%, #DC2626 100%) !important;
+  color: white !important;
+  box-shadow: var(--shadow-md);
+}
+
+.btn-favorited:hover {
+  background: linear-gradient(135deg, #DC2626 0%, var(--error) 100%) !important;
+  transform: translateY(-1px);
+}
+
 /* Button sizes */
 .btn-small {
   padding: var(--spacing-sm) var(--spacing-md);

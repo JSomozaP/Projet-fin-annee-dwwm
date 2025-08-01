@@ -32,11 +32,24 @@ class FavoriteController {
         });
       }
 
+      // Récupérer l'avatar du streamer depuis l'API Twitch
+      let streamerAvatar = null;
+      try {
+        const streamerInfo = await twitchService.getUserByLogin(streamerName);
+        if (streamerInfo && streamerInfo.length > 0) {
+          streamerAvatar = streamerInfo[0].profile_image_url;
+          console.log('📸 Avatar récupéré pour', streamerName, ':', streamerAvatar);
+        }
+      } catch (error) {
+        console.warn('⚠️ Impossible de récupérer l\'avatar pour', streamerName, ':', error.message);
+      }
+
       // Créer le favori
       const favorite = await Favorite.create({
         userId,
         streamerId,
         streamerName,
+        streamerAvatar,
         gameId: gameId || null,
         gameName: gameName || null
       });
@@ -103,8 +116,34 @@ class FavoriteController {
         limit: parseInt(limit)
       });
 
-      // Pour l'instant, retourner les favoris simples sans enrichissement
-      // L'enrichissement sera fait dans un endpoint séparé
+      // Enrichir les favoris avec le statut live
+      const enrichedFavorites = await Promise.all(
+        favorites.map(async (favorite) => {
+          try {
+            const isLive = await twitchService.isStreamerLive(favorite.streamerName);
+            return {
+              ...favorite.toJSON(),
+              isLive: isLive
+            };
+          } catch (error) {
+            console.warn(`⚠️ Erreur vérification statut live pour ${favorite.streamerName}:`, error.message);
+            return {
+              ...favorite.toJSON(),
+              isLive: false
+            };
+          }
+        })
+      );
+
+      res.json({
+        success: true,
+        data: enrichedFavorites,
+        pagination: {
+          total: favorites.length,
+          page: parseInt(page),
+          limit: parseInt(limit)
+        }
+      });
       res.json({
         success: true,
         data: favorites,

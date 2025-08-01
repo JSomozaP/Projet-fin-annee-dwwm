@@ -5,6 +5,7 @@ class User {
     this.id = data.id;
     this.email = data.email;
     this.username = data.username;
+    this.avatarUrl = data.avatar_url;
     this.twitchId = data.twitch_id;
     this.twitchToken = data.twitch_token;
     this.dateCreation = data.date_creation;
@@ -14,13 +15,13 @@ class User {
 
   // Créer un nouvel utilisateur
   static async create(userData) {
-    const { email, username, twitchId, twitchToken, preferences = {} } = userData;
+    const { email, username, avatarUrl, twitchId, twitchToken, preferences = {} } = userData;
     
     try {
       const [result] = await pool.execute(
-        `INSERT INTO utilisateur (email, username, twitch_id, twitch_token, preferences, is_connected) 
-         VALUES (?, ?, ?, ?, ?, true)`,
-        [email, username, twitchId, twitchToken, JSON.stringify(preferences)]
+        `INSERT INTO utilisateur (email, username, avatar_url, twitch_id, twitch_token, preferences, is_connected) 
+         VALUES (?, ?, ?, ?, ?, ?, true)`,
+        [email, username, avatarUrl, twitchId, twitchToken, JSON.stringify(preferences)]
       );
       
       // Récupérer l'utilisateur créé par son email (plus fiable que insertId avec UUID)
@@ -117,6 +118,21 @@ class User {
     }
   }
 
+  // Mettre à jour l'avatar
+  async updateAvatar(avatarUrl) {
+    try {
+      await pool.execute(
+        'UPDATE utilisateur SET avatar_url = ? WHERE id = ?',
+        [avatarUrl, this.id]
+      );
+      
+      this.avatarUrl = avatarUrl;
+      return this;
+    } catch (error) {
+      throw new Error(`Erreur mise à jour avatar: ${error.message}`);
+    }
+  }
+
   // Supprimer un utilisateur
   async delete() {
     try {
@@ -133,6 +149,7 @@ class User {
       id: this.id,
       email: this.email,
       username: this.username,
+      avatar_url: this.avatarUrl,
       twitchId: this.twitchId,
       dateCreation: this.dateCreation,
       isConnected: this.isConnected,

@@ -1,1 +1,128 @@
-<p>favorites works!</p>
+<div class="favorites-container">
+  <!-- En-tête -->
+  <div class="favorites-header">
+    <h1 class="page-title">
+      <span class="icon-heart">❤️</span>
+      Mes Favoris
+    </h1>
+    <p class="page-description">
+      Retrouvez tous vos streamers préférés en un seul endroit !
+    </p>
+  </div>
+
+  <!-- Erreur -->
+  <div *ngIf="error" class="alert alert-danger">
+    <span class="icon-error">⚠️</span>
+    {{ error }}
+    <button class="btn-close" (click)="clearError()">×</button>
+  </div>
+
+  <!-- État non authentifié -->
+  <div *ngIf="!isAuthenticated" class="auth-required">
+    <div class="auth-content">
+      <div class="auth-icon">🔐</div>
+      <h2>Connexion requise</h2>
+      <p>Connectez-vous avec Twitch pour accéder à vos favoris !</p>
+      <button class="btn btn-primary btn-large" (click)="login()">
+        <span class="icon-twitch">🎮</span>
+        Se connecter avec Twitch
+      </button>
+    </div>
+  </div>
+
+  <!-- Contenu authentifié -->
+  <div *ngIf="isAuthenticated">
+    <!-- État de chargement -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement de vos favoris...</p>
+    </div>
+
+    <!-- Liste vide -->
+    <div *ngIf="!isLoading && favorites.length === 0" class="empty-favorites">
+      <div class="empty-content">
+        <div class="empty-icon">💫</div>
+        <h2>Aucun favori pour le moment</h2>
+        <p>Il n'y a pas encore de favoris par ici, il faut s'y mettre !</p>
+        <p class="tip">Découvrez de nouveaux streamers et ajoutez-les à vos favoris.</p>
+        <button class="btn btn-primary btn-large" (click)="goToDiscovery()">
+          <span class="icon-discover">🔍</span>
+          Découvrir des streams
+        </button>
+      </div>
+    </div>
+
+    <!-- Liste des favoris -->
+    <div *ngIf="!isLoading && favorites.length > 0" class="favorites-grid">
+      <div 
+        *ngFor="let favorite of favorites" 
+        class="favorite-card"
+        [class.live]="favorite.isLive"
+      >
+        <!-- Avatar du streamer -->
+        <div class="favorite-avatar">
+          <img 
+            [src]="favorite.streamer_avatar || '/assets/default-avatar.svg'" 
+            [alt]="favorite.streamer_name"
+            class="streamer-avatar"
+          >
+          <div class="live-indicator" *ngIf="favorite.isLive">
+            <span class="live-dot"></span>
+            LIVE
+          </div>
+        </div>
+
+        <div class="favorite-header">
+          <div class="streamer-info">
+            <h3 class="streamer-name">{{ favorite.streamer_name }}</h3>
+            <p class="game-name" *ngIf="favorite.game_name">{{ favorite.game_name }}</p>
+            <p class="no-game" *ngIf="!favorite.game_name">Aucun jeu spécifié</p>
+          </div>
+          <button 
+            class="btn-remove" 
+            (click)="removeFavorite(favorite.streamer_id)"
+            title="Retirer des favoris"
+          >
+            <span class="icon-remove">❌</span>
+          </button>
+        </div>
+        
+        <div class="favorite-meta">
+          <span class="added-date">
+            <span class="icon-calendar">📅</span>
+            Ajouté le {{ favorite.created_at | date:'short' }}
+          </span>
+        </div>
+
+        <div class="favorite-actions">
+          <button 
+            class="btn btn-primary btn-small"
+            [disabled]="!favorite.isLive"
+            (click)="watchStreamer(favorite.streamer_name)"
+            [title]="favorite.isLive ? 'Regarder le stream' : 'Streamer hors ligne'"
+          >
+            <span class="icon-play">▶️</span>
+            {{ favorite.isLive ? 'Regarder' : 'Hors ligne' }}
+          </button>
+          <button 
+            class="btn btn-secondary btn-small"
+            (click)="getStreamerInfo(favorite.streamer_name)"
+          >
+            <span class="icon-info">ℹ️</span>
+            Infos
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Statistiques -->
+    <div *ngIf="!isLoading && favorites.length > 0" class="favorites-stats">
+      <div class="stats-content">
+        <span class="stats-count">
+          <span class="icon-heart">💖</span>
+          {{ favorites.length }} favori{{ favorites.length > 1 ? 's' : '' }}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

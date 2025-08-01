@@ -29,19 +29,10 @@ export class AuthService {
   }
 
   redirectToTwitchAuth(): void {
-    console.log('🔄 Redirecting to Twitch auth...');
-    const clientId = environment.twitchClientId;
-    const redirectUri = environment.twitchRedirectUri;
-    const scope = 'user:read:email';
+    console.log('🔄 Redirecting to Twitch auth via backend...');
     
-    const authUrl = `https://id.twitch.tv/oauth2/authorize?` +
-      `client_id=${clientId}&` +
-      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-      `response_type=code&` +
-      `scope=${encodeURIComponent(scope)}`;
-    
-    console.log('🌐 Auth URL:', authUrl);
-    window.location.href = authUrl;
+    // Redirection vers l'endpoint backend qui va rediriger vers Twitch
+    window.location.href = `${this.apiUrl}/auth/twitch`;
   }
 
   handleCallback(code: string): Observable<any> {
@@ -61,15 +52,19 @@ export class AuthService {
       );
   }
 
-  getCurrentUser(): Observable<User> {
+  getCurrentUser(): Observable<any> {
     console.log('👤 Getting current user...');
-    return this.http.get<User>(`${this.apiUrl}/auth/me`)
-      .pipe(
-        tap(user => {
-          console.log('👤 Current user:', user);
-          this.userSubject.next(user);
-        })
-      );
+    return this.http.get(`${this.apiUrl}/auth/me`, {
+      headers: this.getAuthHeaders()
+    }).pipe(
+      tap((response: any) => {
+        console.log('👤 Current user response:', response);
+        // L'API retourne { user: {...} }
+        const user = response.user || response;
+        this.userSubject.next(user);
+        this.isAuthenticatedSubject.next(true);
+      })
+    );
   }
 
   logout(): void {

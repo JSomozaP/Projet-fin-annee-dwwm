@@ -514,6 +514,50 @@ class TwitchService {
 
     return await this.getStreams(apiFilters);
   }
+
+  // Récupérer les informations d'un utilisateur par son login
+  async getUserByLogin(login) {
+    try {
+      await this.ensureValidToken();
+      
+      const response = await axios.get(`${this.baseURL}/users`, {
+        headers: {
+          'Client-ID': this.clientId,
+          'Authorization': `Bearer ${this.accessToken}`
+        },
+        params: {
+          login: login
+        }
+      });
+
+      return response.data.data;
+    } catch (error) {
+      console.error(`❌ Erreur lors de la récupération de l'utilisateur ${login}:`, error.message);
+      return null;
+    }
+  }
+
+  // Vérifier si un streamer est en live
+  async isStreamerLive(streamerName) {
+    try {
+      await this.ensureValidToken();
+      
+      const response = await axios.get(`${this.baseURL}/streams`, {
+        headers: {
+          'Client-ID': this.clientId,
+          'Authorization': `Bearer ${this.accessToken}`
+        },
+        params: {
+          user_login: streamerName
+        }
+      });
+
+      return response.data.data.length > 0;
+    } catch (error) {
+      console.error(`❌ Erreur lors de la vérification du statut live de ${streamerName}:`, error.message);
+      return false;
+    }
+  }
 }
 
 module.exports = new TwitchService();
