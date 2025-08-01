@@ -193,7 +193,7 @@
       </div>
     </div>
 
-    <!-- Bouton Suivant -->
+    <!-- Boutons d'action principaux -->
     <div class="discovery-actions">
       <button 
         class="btn btn-secondary btn-large"
@@ -202,6 +202,16 @@
       >
         <span class="icon-next">🔄</span>
         {{ isLoading ? 'Recherche...' : 'Découvrir un autre stream' }}
+      </button>
+      
+      <button 
+        class="btn btn-warning btn-medium"
+        (click)="toggleHistoryPanel()"
+        [disabled]="getHistoryStats().viewedCount === 0"
+        title="Voir l'historique des streams découverts"
+      >
+        <span class="icon-history">�</span>
+        Historique ({{ getHistoryStats().viewedCount }})
       </button>
     </div>
 
@@ -216,4 +226,61 @@
       </div>
     </div>
   </div>
+
+  <!-- 📋 Slide Panel Historique -->
+  <div class="history-panel" [class.open]="showHistoryPanel">
+    <div class="history-header">
+      <h3>
+        <span class="icon-history">📋</span>
+        Historique des streams
+      </h3>
+      <button class="btn-close" (click)="toggleHistoryPanel()">×</button>
+    </div>
+    
+    <div class="history-content">
+      <div *ngIf="getViewHistory().length === 0" class="empty-history">
+        <span class="icon-empty">🎯</span>
+        <p>Aucun stream dans l'historique</p>
+        <small>Découvrez des streams pour les voir apparaître ici !</small>
+      </div>
+      
+      <div *ngIf="getViewHistory().length > 0" class="history-list">
+        <div 
+          *ngFor="let stream of getViewHistory()" 
+          class="history-item"
+          (click)="goToHistoryStream(stream.streamerName)"
+        >
+          <img 
+            [src]="stream.thumbnailUrl" 
+            [alt]="stream.streamerName"
+            class="stream-thumbnail"
+            loading="lazy"
+          >
+          <div class="stream-info">
+            <h4>{{ stream.streamerName }}</h4>
+            <p class="game-name">{{ stream.gameName }}</p>
+            <div class="stream-meta">
+              <span class="viewers">👥 {{ formatViewerCount(stream.viewerCount) }}</span>
+              <span class="viewed-at">🕐 {{ getTimeAgo(stream.viewedAt) }}</span>
+            </div>
+          </div>
+          <span class="play-icon">▶️</span>
+        </div>
+      </div>
+      
+      <div *ngIf="getViewHistory().length > 0" class="history-actions">
+        <button class="btn btn-danger btn-small" (click)="resetViewHistory()">
+          <span class="icon-reset">🗑️</span>
+          Vider l'historique
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay pour fermer le panel -->
+  <div 
+    *ngIf="showHistoryPanel" 
+    class="history-overlay"
+    (click)="toggleHistoryPanel()"
+  ></div>
 </div>

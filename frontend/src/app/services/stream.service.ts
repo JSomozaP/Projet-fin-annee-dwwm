@@ -21,6 +21,7 @@ export interface StreamFilters {
   language?: string;
   minViewers?: number;
   maxViewers?: number;
+  excludeIds?: string[]; // IDs des streams à exclure
 }
 
 export interface ApiResponse<T> {
@@ -29,10 +30,23 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
+export interface ViewedStream {
+  streamerId: string;
+  streamerName: string;
+  gameName: string;
+  thumbnailUrl: string;
+  viewerCount: number;
+  viewedAt: Date;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class StreamService {
+  
+  private viewedStreams: Set<string> = new Set(); // IDs pour exclusion rapide
+  private viewedHistory: ViewedStream[] = []; // Historique détaillé pour l'UI
+  private readonly MAX_HISTORY = 50; // Réduire à 50 pour performance optimale
 
   constructor(
     private http: HttpClient
@@ -61,8 +75,66 @@ export class StreamService {
       if (filters.minViewers !== undefined) params = params.set('minViewers', filters.minViewers.toString());
       if (filters.maxViewers !== undefined) params = params.set('maxViewers', filters.maxViewers.toString());
     }
+
+    // 🚀 Ajouter automatiquement les streams déjà vus
+    const excludeIds = Array.from(this.viewedStreams);
+    if (excludeIds.length > 0) {
+      // Transmettre les IDs comme paramètre multiple
+      excludeIds.forEach(id => {
+        params = params.append('excludeIds', id);
+      });
+    }
     
     return this.http.get<ApiResponse<Stream>>(`${environment.apiUrl}/streams/discover`, { headers, params });
+  }
+
+  // 📝 Marquer un stream comme vu (version enrichie)
+  markStreamAsViewed(stream: Stream): void {
+    // Ajouter l'ID pour exclusion
+    this.viewedStreams.add(stream.streamerId);
+    
+    // Ajouter les détails pour l'historique
+    const viewedStream: ViewedStream = {
+      streamerId: stream.streamerId,
+      streamerName: stream.streamerName,
+      gameName: stream.jeu,
+      thumbnailUrl: stream.thumbnailUrl,
+      viewerCount: stream.nbViewers,
+      viewedAt: new Date()
+    };
+    
+    // Ajouter au début de l'historique (plus récent en premier)
+    this.viewedHistory.unshift(viewedStream);
+    
+    // Nettoyer l'historique si trop long
+    if (this.viewedHistory.length > this.MAX_HISTORY) {
+      const removed = this.viewedHistory.pop();
+      if (removed) {
+        this.viewedStreams.delete(removed.streamerId);
+      }
+    }
+    
+    console.log(`📝 Stream ${stream.streamerId} ajouté à l'historique (${this.viewedHistory.length} total)`);
+  }
+
+  // 🗑️ Réinitialiser l'historique complet
+  clearViewHistory(): void {
+    this.viewedStreams.clear();
+    this.viewedHistory = [];
+    console.log('🗑️ Historique des streams vus réinitialisé');
+  }
+
+  // 📋 Obtenir l'historique complet pour l'UI
+  getViewHistory(): ViewedStream[] {
+    return [...this.viewedHistory]; // Copie pour éviter les mutations
+  }
+
+  // 📊 Obtenir les statistiques d'historique
+  getHistoryStats(): { viewedCount: number; maxHistory: number } {
+    return {
+      viewedCount: this.viewedHistory.length,
+      maxHistory: this.MAX_HISTORY
+    };
   }
 
   getRandomStream(): Observable<ApiResponse<Stream>> {

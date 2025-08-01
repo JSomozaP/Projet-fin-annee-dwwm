@@ -29,6 +29,9 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
   isFavorite = false;
   isWatchingStream = false; // Nouvel état pour l'affichage du stream
   
+  // 📋 Historique slide panel
+  showHistoryPanel = false;
+  
   // Filtres de recherche
   filters: StreamFilters = {
     game: '',
@@ -76,6 +79,10 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
         next: (response) => {
           if (response.success && response.data) {
             this.currentStream = response.data;
+            
+            // 📝 Marquer automatiquement le stream comme vu
+            this.streamService.markStreamAsViewed(this.currentStream);
+            
             if (this.isAuthenticated) {
               this.checkIfFavorite();
             }
@@ -152,20 +159,6 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
         }
       });
     }
-  }
-
-  formatViewerCount(count: number): string {
-    // Vérification pour éviter les erreurs si count est undefined
-    if (count === undefined || count === null) {
-      return '0';
-    }
-    
-    if (count >= 1000000) {
-      return `${(count / 1000000).toFixed(1)}M`;
-    } else if (count >= 1000) {
-      return `${(count / 1000).toFixed(1)}K`;
-    }
-    return count.toString();
   }
 
   openStream() {
@@ -285,6 +278,10 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
           this.isLoading = false;
           if (response.success && response.data) {
             this.currentStream = response.data;
+            
+            // 📝 Marquer automatiquement le stream comme vu
+            this.streamService.markStreamAsViewed(this.currentStream);
+            
             this.checkIfFavorite();
           } else {
             this.error = response.error || 'Aucun stream trouvé avec ces critères';
@@ -309,4 +306,75 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
     this.discoverStream();
   }
 
+  // � Toggle du panneau d'historique
+  toggleHistoryPanel() {
+    this.showHistoryPanel = !this.showHistoryPanel;
+  }
+
+  // 📋 Obtenir l'historique pour l'affichage
+  getViewHistory() {
+    return this.streamService.getViewHistory();
+  }
+
+  // 🎯 Naviguer vers un stream de l'historique
+  goToHistoryStream(streamerName: string) {
+    // Trouver le stream dans l'historique pour récupérer ses infos
+    const historyStream = this.getViewHistory().find(s => s.streamerName === streamerName);
+    
+    if (historyStream) {
+      // Reconstituer l'objet Stream complet pour le viewer
+      this.currentStream = {
+        streamerId: historyStream.streamerId,
+        streamerName: historyStream.streamerName,
+        titre: `Stream de ${historyStream.streamerName}`, // Titre par défaut
+        jeu: historyStream.gameName,
+        categorie: historyStream.gameName,
+        langue: 'fr', // Langue par défaut 
+        nbViewers: historyStream.viewerCount,
+        thumbnailUrl: historyStream.thumbnailUrl,
+        embedUrl: `https://player.twitch.tv/?channel=${historyStream.streamerName}`
+      };
+      
+      // Fermer le panel d'historique
+      this.showHistoryPanel = false;
+      
+      // Ouvrir le viewer en mode plein écran
+      this.isWatchingStream = true;
+      
+      console.log(`🎬 Ouverture du stream ${historyStream.streamerName} depuis l'historique`);
+    }
+  }
+
+  // �🗑️ Réinitialiser l'historique des streams vus
+  resetViewHistory() {
+    this.streamService.clearViewHistory();
+    this.showHistoryPanel = false; // Fermer le panel après reset
+    console.log('🗑️ Historique réinitialisé');
+  }
+
+  // � Calculer le temps écoulé depuis la visualisation
+  getTimeAgo(date: Date): string {
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    
+    if (diffMinutes < 1) return 'À l\'instant';
+    if (diffMinutes < 60) return `${diffMinutes}min`;
+    
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `${diffHours}h`;
+    
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}j`;
+  }
+
+  // �📊 Obtenir les statistiques d'historique
+  getHistoryStats() {
+    return this.streamService.getHistoryStats();
+  }
+
+  // 📈 Formater le nombre de viewers
+  formatViewerCount(count: number): string {
+    return this.streamService.formatViewerCount(count);
+  }
 }
