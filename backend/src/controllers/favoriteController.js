@@ -104,32 +104,79 @@ class FavoriteController {
   async getFavorites(req, res) {
     try {
       const userId = req.user.id;
-      const { page = 1, limit = 20 } = req.query;
+      const { page = 1, limit = 20, checkLive = 'false' } = req.query;
 
       console.log('📋 Récupération des favoris:', { 
         userId, 
         page: parseInt(page), 
-        limit: parseInt(limit) 
+        limit: parseInt(limit),
+        checkLive: checkLive === 'true'
       });
 
       const favorites = await Favorite.findByUserId(userId, {
         limit: parseInt(limit)
       });
 
-      // Enrichir les favoris avec le statut live
+      // Enrichir les favoris avec les informations complètes du streamer
       const enrichedFavorites = await Promise.all(
         favorites.map(async (favorite) => {
           try {
-            const isLive = await twitchService.isStreamerLive(favorite.streamerName);
+            // Récupérer les informations complètes du streamer
+            const streamerInfo = await twitchService.getUserByLogin(favorite.streamerName);
+            let streamerData = {};
+            
+            if (streamerInfo && streamerInfo.length > 0) {
+              const streamer = streamerInfo[0];
+              streamerData = {
+                displayName: streamer.display_name,
+                description: streamer.description || 'Aucune description',
+                profileImageUrl: streamer.profile_image_url,
+                viewCount: streamer.view_count,
+                followerCount: 0, // L'API Twitch ne donne plus cette info facilement
+                createdAt: streamer.created_at
+              };
+            }
+
+            // Vérifier le statut live si demandé
+            let isLive = false;
+            let currentGame = null;
+            let viewerCount = 0;
+            
+            if (checkLive === 'true') {
+              try {
+                const liveStatus = await twitchService.isStreamerLive(favorite.streamerName);
+                isLive = liveStatus;
+                
+                // Si live, récupérer les infos du stream actuel
+                if (isLive) {
+                  const streamInfo = await twitchService.getStreamInfo(favorite.streamerName);
+                  if (streamInfo) {
+                    currentGame = streamInfo.game_name;
+                    viewerCount = streamInfo.viewer_count;
+                  }
+                }
+              } catch (error) {
+                console.warn(`⚠️ Erreur vérification statut live pour ${favorite.streamerName}:`, error.message);
+              }
+            }
+
             return {
               ...favorite.toJSON(),
-              isLive: isLive
+              ...streamerData,
+              isLive,
+              currentGame,
+              viewerCount
             };
           } catch (error) {
-            console.warn(`⚠️ Erreur vérification statut live pour ${favorite.streamerName}:`, error.message);
+            console.warn(`⚠️ Erreur enrichissement favori ${favorite.streamerName}:`, error.message);
             return {
               ...favorite.toJSON(),
-              isLive: false
+              displayName: favorite.streamerName,
+              description: 'Informations non disponibles',
+              profileImageUrl: favorite.streamerAvatar,
+              isLive: false,
+              currentGame: null,
+              viewerCount: 0
             };
           }
         })
@@ -143,16 +190,6 @@ class FavoriteController {
           page: parseInt(page),
           limit: parseInt(limit)
         }
-      });
-      res.json({
-        success: true,
-        data: favorites,
-        pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total: favorites.length
-        },
-        message: 'Favoris récupérés avec succès'
       });
     } catch (error) {
       console.error('Erreur dans getFavorites:', error);

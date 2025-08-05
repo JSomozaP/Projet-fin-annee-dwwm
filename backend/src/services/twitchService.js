@@ -518,7 +518,7 @@ class TwitchService {
   // Récupérer les informations d'un utilisateur par son login
   async getUserByLogin(login) {
     try {
-      await this.ensureValidToken();
+      await this.getAccessToken();
       
       const response = await axios.get(`${this.baseURL}/users`, {
         headers: {
@@ -540,7 +540,7 @@ class TwitchService {
   // Vérifier si un streamer est en live
   async isStreamerLive(streamerName) {
     try {
-      await this.ensureValidToken();
+      await this.getAccessToken();
       
       const response = await axios.get(`${this.baseURL}/streams`, {
         headers: {
@@ -556,6 +556,32 @@ class TwitchService {
     } catch (error) {
       console.error(`❌ Erreur lors de la vérification du statut live de ${streamerName}:`, error.message);
       return false;
+    }
+  }
+
+  // Obtenir les informations du stream actuel d'un streamer
+  async getStreamInfo(streamerName) {
+    try {
+      await this.getAccessToken();
+      
+      const response = await axios.get(`${this.baseURL}/streams`, {
+        headers: {
+          'Client-ID': this.clientId,
+          'Authorization': `Bearer ${this.accessToken}`
+        },
+        params: {
+          user_login: streamerName
+        }
+      });
+
+      if (response.data.data.length > 0) {
+        return response.data.data[0]; // Retourne les infos du stream
+      }
+      
+      return null; // Pas en live
+    } catch (error) {
+      console.error(`❌ Erreur lors de la récupération des infos stream de ${streamerName}:`, error.message);
+      return null;
     }
   }
 }

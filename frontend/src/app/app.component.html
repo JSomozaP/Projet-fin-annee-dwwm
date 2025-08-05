@@ -34,7 +34,7 @@
       <ng-container *ngIf="isAuthenticated && user">
         <div class="user-menu">
           <div class="user-avatar">
-            <img [src]="user.avatar_url || '/assets/default-avatar.svg'" [alt]="user.username">
+            <img [src]="user.avatar_url || getDefaultUserAvatar(user.username)" [alt]="user.username" (error)="onUserAvatarError($event, user.username)">
           </div>
           <span class="user-name">{{ user.username }}</span>
           <button class="btn btn-ghost" (click)="logout()">

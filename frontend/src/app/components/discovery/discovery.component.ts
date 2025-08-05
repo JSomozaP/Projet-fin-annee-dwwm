@@ -60,6 +60,19 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
       )
     );
     
+    // Écouter les événements d'ouverture de stream depuis les favoris
+    const openStreamFromFavoriteHandler = (event: any) => {
+      this.openStreamFromFavorite(event.detail.streamData);
+    };
+    window.addEventListener('openStreamFromFavorite', openStreamFromFavoriteHandler);
+    
+    // Nettoyer l'écouteur dans ngOnDestroy
+    this.subscriptions.add({
+      unsubscribe: () => {
+        window.removeEventListener('openStreamFromFavorite', openStreamFromFavoriteHandler);
+      }
+    } as any);
+    
     // Découvrir un premier stream automatiquement
     this.discoverStream();
   }
@@ -306,7 +319,7 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
     this.discoverStream();
   }
 
-  // � Toggle du panneau d'historique
+  // 🔄 Toggle du panneau d'historique
   toggleHistoryPanel() {
     this.showHistoryPanel = !this.showHistoryPanel;
   }
@@ -345,14 +358,28 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
     }
   }
 
-  // �🗑️ Réinitialiser l'historique des streams vus
+  // Ouvrir un stream depuis les favoris
+  openStreamFromFavorite(streamData: Stream) {
+    // Définir le stream actuel
+    this.currentStream = streamData;
+    
+    // Ouvrir le viewer en mode plein écran
+    this.isWatchingStream = true;
+    
+    // Marquer le stream comme vu (ajouter à l'historique)
+    this.streamService.markStreamAsViewed(streamData);
+    
+    console.log('Stream ouvert depuis les favoris:', streamData.streamerName);
+  }
+
+  // 🗑️ Réinitialiser l'historique des streams vus
   resetViewHistory() {
     this.streamService.clearViewHistory();
     this.showHistoryPanel = false; // Fermer le panel après reset
     console.log('🗑️ Historique réinitialisé');
   }
 
-  // � Calculer le temps écoulé depuis la visualisation
+  // ⏰ Calculer le temps écoulé depuis la visualisation
   getTimeAgo(date: Date): string {
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
@@ -368,7 +395,7 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
     return `${diffDays}j`;
   }
 
-  // �📊 Obtenir les statistiques d'historique
+  // 📊 Obtenir les statistiques d'historique
   getHistoryStats() {
     return this.streamService.getHistoryStats();
   }

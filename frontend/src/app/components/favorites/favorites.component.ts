@@ -73,19 +73,38 @@ export class FavoritesComponent implements OnInit, OnDestroy {
   }
 
   watchStreamer(streamerName: string): void {
-    // Rediriger vers la découverte puis ouvrir le stream-viewer
+    // Trouver le favori pour récupérer ses informations
+    const favorite = this.favorites.find(f => f.streamer_name === streamerName);
+    
+    if (!favorite) {
+      console.error('Favori non trouvé pour:', streamerName);
+      return;
+    }
+
+    // Rediriger vers la page discovery
     this.router.navigate(['/discovery']).then(() => {
-      // Utiliser le service de stream pour ouvrir le stream
+      // Attendre que la page soit chargée puis envoyer les informations du stream
       setTimeout(() => {
-        // Simuler l'ouverture d'un stream dans l'app
-        const streamViewerElement = document.querySelector('app-stream-viewer');
-        if (streamViewerElement) {
-          // Si le stream-viewer existe déjà, le mettre à jour
-          // Cette logique sera améliorée avec un service partagé
-        }
+        // Utiliser le StreamService pour ouvrir le stream dans l'application
+        const streamData = {
+          streamerId: favorite.streamer_id,
+          streamerName: favorite.streamer_name,
+          titre: `Stream de ${favorite.displayName || favorite.streamer_name}`,
+          jeu: favorite.currentGame || 'Non spécifié',
+          categorie: favorite.currentGame || 'Non spécifié',
+          langue: 'fr', // Langue par défaut
+          nbViewers: favorite.viewerCount || 0,
+          thumbnailUrl: `https://static-cdn.jtvnw.net/previews-ttv/live_user_${favorite.streamer_name}-640x360.jpg`,
+          embedUrl: `https://player.twitch.tv/?channel=${favorite.streamer_name}&parent=localhost`
+        };
+
+        // Utiliser un événement personnalisé pour communiquer avec le composant discovery
+        const event = new CustomEvent('openStreamFromFavorite', {
+          detail: { streamData }
+        });
+        window.dispatchEvent(event);
         
-        // Pour l'instant, ouvrir dans un nouvel onglet avec une URL propre
-        window.open(`https://www.twitch.tv/${streamerName}?parent=localhost`, '_blank');
+        console.log(`🎬 Ouverture du stream ${favorite.streamer_name} depuis les favoris`);
       }, 100);
     });
   }
@@ -103,29 +122,62 @@ export class FavoritesComponent implements OnInit, OnDestroy {
   private createInfoModal(favorite: Favorite): HTMLElement {
     const modal = document.createElement('div');
     modal.className = 'streamer-info-modal';
+    
+    // Utiliser les nouvelles propriétés enrichies avec fallbacks sécurisés
+    const displayName = favorite.displayName || favorite.streamer_name || 'Nom indisponible';
+    const streamerUsername = favorite.streamer_name || 'unknown';
+    const avatarUrl = favorite.profileImageUrl || favorite.streamer_avatar || this.getDefaultAvatar(streamerUsername);
+    const defaultAvatarFallback = this.getDefaultAvatar(streamerUsername);
+    const description = favorite.description && favorite.description !== 'Aucune description' ? favorite.description : 'Aucune description disponible';
+    
+    // Gestion du jeu actuel selon les suggestions
+    let gameStatus = '';
+    if (favorite.isLive && favorite.currentGame) {
+      gameStatus = favorite.currentGame;
+    } else if (favorite.isLive) {
+      gameStatus = 'En direct (jeu non spécifié)';
+    } else {
+      gameStatus = 'Pas en stream pour le moment';
+    }
+    
+    const viewerCount = favorite.isLive && favorite.viewerCount ? this.formatNumber(favorite.viewerCount) : '';
+    
+    // Gestion sécurisée de la date
+    let formattedDate = 'Date inconnue';
+    try {
+      if (favorite.created_at) {
+        formattedDate = this.formatDate(favorite.created_at);
+      }
+    } catch (error) {
+      console.warn('Erreur formatage date:', error);
+      formattedDate = 'Date invalide';
+    }
+    
     modal.innerHTML = `
       <div class="modal-overlay" onclick="this.parentElement.remove()">
         <div class="modal-content" onclick="event.stopPropagation()">
           <div class="modal-header">
-            <h3>📺 ${favorite.streamer_name}</h3>
+            <h3>📺 ${displayName}</h3>
             <button class="modal-close" onclick="this.closest('.streamer-info-modal').remove()">×</button>
           </div>
           <div class="modal-body">
             <div class="streamer-avatar-large">
-              <img src="${favorite.streamer_avatar || '/assets/default-avatar.svg'}" alt="${favorite.streamer_name}">
-              ${favorite.isLive ? '<div class="live-badge">🔴 EN LIVE</div>' : '<div class="offline-badge">⚫ HORS LIGNE</div>'}
+              <img src="${avatarUrl}" alt="${displayName}" onerror="this.src='${defaultAvatarFallback}'">
+              ${favorite.isLive ? '<div class="live-badge">🔴 EN DIRECT</div>' : '<div class="offline-badge">⚫ HORS LIGNE</div>'}
             </div>
             <div class="streamer-details">
-              <p><strong>Nom du streamer:</strong> ${favorite.streamer_name}</p>
-              <p><strong>Jeu actuel:</strong> ${favorite.game_name || 'Non spécifié'}</p>
-              <p><strong>Statut:</strong> ${favorite.isLive ? 'En ligne' : 'Hors ligne'}</p>
-              <p><strong>Ajouté le:</strong> ${new Date(favorite.created_at).toLocaleDateString('fr-FR')}</p>
-              <p><strong>Lien Twitch:</strong> <a href="https://www.twitch.tv/${favorite.streamer_name}" target="_blank">twitch.tv/${favorite.streamer_name}</a></p>
+              <p><strong>Nom du streamer:</strong> ${displayName}</p>
+              <p><strong>Description:</strong> ${description}</p>
+              <p><strong>Jeu actuel:</strong> ${gameStatus}</p>
+              <p><strong>Statut:</strong> ${favorite.isLive ? 'En direct' : 'Hors ligne'}</p>
+              ${favorite.isLive && viewerCount ? `<p><strong>Spectateurs actuels:</strong> ${viewerCount}</p>` : ''}
+              <p><strong>Ajouté aux favoris le:</strong> ${formattedDate}</p>
+              <p><strong>Lien Twitch:</strong> <a href="https://www.twitch.tv/${streamerUsername}" target="_blank">twitch.tv/${streamerUsername}</a></p>
             </div>
           </div>
           <div class="modal-actions">
             ${favorite.isLive ? 
-              `<button class="btn btn-primary" onclick="window.open('https://www.twitch.tv/${favorite.streamer_name}', '_blank')">📺 Regarder sur Twitch</button>` :
+              `<button class="btn btn-primary" onclick="window.open('https://www.twitch.tv/${streamerUsername}', '_blank')">📺 Regarder sur Twitch</button>` :
               '<button class="btn btn-secondary" disabled>Streamer hors ligne</button>'
             }
             <button class="btn btn-secondary" onclick="this.closest('.streamer-info-modal').remove()">Fermer</button>
@@ -253,5 +305,70 @@ export class FavoritesComponent implements OnInit, OnDestroy {
 
   clearError(): void {
     this.error = null;
+  }
+
+  // Génère un avatar par défaut avec les initiales du nom
+  getDefaultAvatar(name: string): string {
+    if (!name) return this.generateAvatarUrl('?');
+    
+    const initials = name
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase())
+      .slice(0, 2)
+      .join('');
+    
+    return this.generateAvatarUrl(initials || name.charAt(0).toUpperCase());
+  }
+
+  // Génère une URL d'avatar avec initiales colorées
+  private generateAvatarUrl(text: string): string {
+    const colors = [
+      '#667eea', '#764ba2', '#f093fb', '#f5576c', 
+      '#4facfe', '#00f2fe', '#43e97b', '#38f9d7',
+      '#ffecd2', '#fcb69f', '#a8edea', '#fed6e3'
+    ];
+    
+    const colorIndex = text.charCodeAt(0) % colors.length;
+    const backgroundColor = colors[colorIndex];
+    
+    // Génère une image SVG en base64
+    const svg = `
+      <svg width="80" height="80" xmlns="http://www.w3.org/2000/svg">
+        <rect width="80" height="80" fill="${backgroundColor}"/>
+        <text x="40" y="48" font-family="Arial, sans-serif" font-size="24" 
+              font-weight="bold" text-anchor="middle" fill="white">${text}</text>
+      </svg>
+    `;
+    
+    return `data:image/svg+xml;base64,${btoa(svg)}`;
+  }
+
+  // Gère les erreurs de chargement d'image
+  onImageError(event: any, name: string): void {
+    // Évite la boucle infinie en définissant une nouvelle source
+    event.target.src = this.getDefaultAvatar(name);
+    // Supprime l'événement d'erreur pour éviter la récursion
+    event.target.onerror = null;
+  }
+
+  formatNumber(num: number): string {
+    if (!num) return '0';
+    
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + 'M';
+    } else if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'K';
+    }
+    
+    return num.toLocaleString();
+  }
+
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   }
 }

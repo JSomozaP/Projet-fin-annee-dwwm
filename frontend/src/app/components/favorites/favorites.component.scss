@@ -239,8 +239,16 @@
     
     .game-name {
       color: #667eea;
-      margin: 0;
+      margin: 0 0 0.3rem;
       font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    .viewer-count {
+      color: #ff6b35;
+      margin: 0 0 0.3rem;
+      font-weight: 500;
+      font-size: 0.9rem;
     }
     
     .no-game {
@@ -265,6 +273,49 @@
     
     .icon-remove {
       font-size: 1.2rem;
+    }
+  }
+}
+
+.streamer-description {
+  margin-bottom: 1rem;
+  
+  .description-text {
+    color: #555;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    margin: 0;
+    padding: 0.75rem;
+    background: rgba(102, 126, 234, 0.05);
+    border-radius: 0.5rem;
+    border-left: 3px solid #667eea;
+  }
+}
+
+.streamer-stats {
+  margin-bottom: 1rem;
+  
+  .stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    .stat-label {
+      color: #666;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    
+    .stat-value {
+      color: #333;
+      font-weight: bold;
+      font-size: 0.95rem;
     }
   }
 }

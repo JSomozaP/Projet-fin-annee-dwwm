@@ -12,6 +12,14 @@ export interface Favorite {
   game_name?: string;
   created_at: string;
   isLive?: boolean;
+  // Nouvelles propriétés enrichies
+  displayName?: string;
+  description?: string;
+  profileImageUrl?: string;
+  viewCount?: number;
+  followerCount?: number;
+  currentGame?: string;
+  viewerCount?: number;
 }
 
 export interface ApiResponse<T> {
@@ -52,7 +60,8 @@ export class FavoriteService {
     this.loadingSubject.next(true);
     const headers = this.getAuthHeaders();
     
-    this.http.get<ApiResponse<Favorite[]>>(`${environment.apiUrl}/favorites`, { headers })
+    // Demander les informations enrichies avec vérification du statut live
+    this.http.get<ApiResponse<Favorite[]>>(`${environment.apiUrl}/favorites?checkLive=true`, { headers })
       .subscribe({
         next: (response) => {
           if (response.success && response.data) {
@@ -69,7 +78,8 @@ export class FavoriteService {
 
   getFavorites(): Observable<ApiResponse<Favorite[]>> {
     const headers = this.getAuthHeaders();
-    return this.http.get<ApiResponse<Favorite[]>>(`${environment.apiUrl}/favorites`, { headers });
+    // Demander les informations enrichies avec vérification du statut live
+    return this.http.get<ApiResponse<Favorite[]>>(`${environment.apiUrl}/favorites?checkLive=true`, { headers });
   }
 
   addFavorite(streamerId: string, streamerName: string, gameName: string): Observable<ApiResponse<any>> {

@@ -214,12 +214,13 @@ class Favorite {
   toJSON() {
     return {
       id: this.id,
-      userId: this.userId,
-      streamerId: this.streamerId,
-      streamerName: this.streamerName,
-      streamerAvatar: this.streamerAvatar,
-      dateAjout: this.dateAjout,
-      notificationActive: this.notificationActive
+      user_id: this.userId,
+      streamer_id: this.streamerId,
+      streamer_name: this.streamerName,
+      streamer_avatar: this.streamerAvatar,
+      created_at: this.dateAjout,  // Utiliser created_at pour cohérence avec le frontend
+      date_ajout: this.dateAjout,  // Garder l'ancien nom pour compatibilité
+      notification_active: this.notificationActive
     };
   }
 }

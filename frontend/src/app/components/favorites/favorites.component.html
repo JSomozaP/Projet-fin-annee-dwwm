@@ -62,9 +62,11 @@
         <!-- Avatar du streamer -->
         <div class="favorite-avatar">
           <img 
-            [src]="favorite.streamer_avatar || '/assets/default-avatar.svg'" 
-            [alt]="favorite.streamer_name"
+            [src]="favorite.profileImageUrl || favorite.streamer_avatar || getDefaultAvatar(favorite.displayName || favorite.streamer_name)" 
+            [alt]="favorite.displayName || favorite.streamer_name"
             class="streamer-avatar"
+            [style.border-color]="favorite.isLive ? '#00ff88' : '#667eea'"
+            (error)="onImageError($event, favorite.displayName || favorite.streamer_name)"
           >
           <div class="live-indicator" *ngIf="favorite.isLive">
             <span class="live-dot"></span>
@@ -74,9 +76,16 @@
 
         <div class="favorite-header">
           <div class="streamer-info">
-            <h3 class="streamer-name">{{ favorite.streamer_name }}</h3>
-            <p class="game-name" *ngIf="favorite.game_name">{{ favorite.game_name }}</p>
-            <p class="no-game" *ngIf="!favorite.game_name">Aucun jeu spécifié</p>
+            <h3 class="streamer-name">{{ favorite.displayName || favorite.streamer_name }}</h3>
+            <p class="game-name" *ngIf="favorite.isLive && favorite.currentGame">
+              🎮 {{ favorite.currentGame }}
+            </p>
+            <p class="viewer-count" *ngIf="favorite.isLive && favorite.viewerCount">
+              👁️ {{ formatNumber(favorite.viewerCount) }} spectateurs
+            </p>
+            <p class="no-game" *ngIf="!favorite.isLive">
+              Hors ligne
+            </p>
           </div>
           <button 
             class="btn-remove" 
@@ -85,6 +94,19 @@
           >
             <span class="icon-remove">❌</span>
           </button>
+        </div>
+
+        <!-- Description du streamer -->
+        <div class="streamer-description" *ngIf="favorite.description && favorite.description !== 'Aucune description'">
+          <p class="description-text">{{ favorite.description }}</p>
+        </div>
+
+        <!-- Statistiques du streamer -->
+        <div class="streamer-stats" *ngIf="favorite.viewCount">
+          <div class="stat-item">
+            <span class="stat-label">Vues totales:</span>
+            <span class="stat-value">{{ formatNumber(favorite.viewCount) }}</span>
+          </div>
         </div>
         
         <div class="favorite-meta">
