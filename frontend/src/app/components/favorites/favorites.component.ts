@@ -19,6 +19,11 @@ export class FavoritesComponent implements OnInit, OnDestroy {
   isAuthenticated = false;
   error: string | null = null;
 
+  // Modal de confirmation de suppression
+  showDeleteConfirmation = false;
+  streamerToDelete: string | null = null;
+  streamerNameToDelete: string | null = null;
+
   private destroy$ = new Subject<void>();
   private favoriteService = inject(FavoriteService);
   private authService = inject(AuthService);
@@ -58,6 +63,42 @@ export class FavoritesComponent implements OnInit, OnDestroy {
 
   loadFavorites(): void {
     this.favoriteService.loadFavorites();
+  }
+
+  // Ouvrir le modal de confirmation avant suppression
+  openDeleteConfirmation(streamerId: string, streamerName: string): void {
+    this.streamerToDelete = streamerId;
+    this.streamerNameToDelete = streamerName;
+    this.showDeleteConfirmation = true;
+  }
+
+  // Confirmer la suppression
+  confirmDeleteFavorite(): void {
+    if (this.streamerToDelete) {
+      this.favoriteService.removeFavorite(this.streamerToDelete).subscribe({
+        next: () => {
+          console.log('✅ Favori supprimé avec succès');
+          this.closeDeleteConfirmation();
+        },
+        error: (error) => {
+          console.error('❌ Erreur suppression favori:', error);
+          this.error = 'Erreur lors de la suppression du favori';
+          this.closeDeleteConfirmation();
+        }
+      });
+    }
+  }
+
+  // Annuler la suppression
+  cancelDeleteFavorite(): void {
+    this.closeDeleteConfirmation();
+  }
+
+  // Fermer le modal
+  closeDeleteConfirmation(): void {
+    this.showDeleteConfirmation = false;
+    this.streamerToDelete = null;
+    this.streamerNameToDelete = null;
   }
 
   removeFavorite(streamerId: string): void {

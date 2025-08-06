@@ -12,6 +12,7 @@ export interface StreamFilters {
   language?: string;
   minViewers?: number;
   maxViewers?: number;
+  streamerName?: string;
 }
 
 @Component({
@@ -36,7 +37,8 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
   filters: StreamFilters = {
     game: '',
     language: '',
-    minViewers: undefined
+    minViewers: undefined,
+    streamerName: ''
   };
   
   // État des filtres (visible/caché)
@@ -196,6 +198,80 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
     // this.discoverStreamWithFilters();
   }
 
+  // Méthode pour gérer le changement de recherche de streamer
+  onStreamerSearchChange() {
+    // Si on a un nom de streamer spécifique, on recherche ce streamer
+    if (this.filters.streamerName && this.filters.streamerName.trim().length > 0) {
+      this.searchSpecificStreamer(this.filters.streamerName.trim());
+    } else {
+      // Sinon, on retourne à la découverte normale avec les autres filtres
+      this.discoverStreamWithFilters();
+    }
+  }
+
+  // Méthode pour rechercher un streamer spécifique
+  searchSpecificStreamer(streamerName: string) {
+    this.isLoading = true;
+    this.error = null;
+    
+    console.log(`🔍 Recherche du streamer: ${streamerName}`);
+    
+    // Utiliser la nouvelle API de recherche spécifique
+    this.streamService.searchStreamerByName(streamerName).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        if (response.success && response.data) {
+          // Normaliser les données pour assurer la compatibilité
+          this.currentStream = this.normalizeStreamData(response.data);
+          this.streamService.markStreamAsViewed(this.currentStream);
+          
+          if (this.isAuthenticated) {
+            this.checkIfFavorite();
+          }
+          
+          // Message informatif selon le statut du streamer
+          if (response.data.isLive) {
+            console.log(`✅ ${streamerName} trouvé et est en live !`);
+          } else {
+            console.log(`ℹ️ ${streamerName} trouvé mais n'est pas en live actuellement.`);
+          }
+        } else {
+          this.error = response.message || `Aucun streamer trouvé avec le nom "${streamerName}".`;
+        }
+      },
+      error: (error) => {
+        console.error('Erreur lors de la recherche du streamer:', error);
+        this.isLoading = false;
+        this.error = `Erreur lors de la recherche de "${streamerName}".`;
+      }
+    });
+  }
+
+  // Normaliser les données de stream pour assurer la compatibilité
+  private normalizeStreamData(streamData: any): Stream {
+    return {
+      streamerId: streamData.id || streamData.streamerId,
+      streamerName: streamData.user_login || streamData.user_name || streamData.streamerName,
+      titre: streamData.title || streamData.titre,
+      jeu: streamData.game_name || streamData.jeu,
+      categorie: streamData.game_name || streamData.categorie,
+      langue: streamData.language || streamData.langue,
+      nbViewers: streamData.viewer_count || streamData.nbViewers || 0,
+      thumbnailUrl: streamData.thumbnail_url || streamData.thumbnailUrl || streamData.profile_image_url,
+      embedUrl: streamData.embedUrl || `https://player.twitch.tv/?channel=${streamData.user_login || streamData.streamerName}&parent=localhost`,
+      isLive: streamData.isLive || false,
+      // Propriétés optionnelles pour compatibilité
+      user_name: streamData.user_login || streamData.user_name || streamData.streamerName,
+      user_login: streamData.user_login || streamData.user_name || streamData.streamerName,
+      game_name: streamData.game_name || streamData.jeu,
+      title: streamData.title || streamData.titre,
+      thumbnail_url: streamData.thumbnail_url || streamData.thumbnailUrl,
+      viewer_count: streamData.viewer_count || streamData.nbViewers || 0,
+      id: streamData.id || streamData.streamerId,
+      startedAt: streamData.started_at || streamData.startedAt
+    };
+  }
+
   // Suggestions de jeux dynamiques
   onGameInputChange(value: string) {
     this.filters.game = value;
@@ -313,7 +389,8 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
     this.filters = {
       game: '',
       language: '',
-      minViewers: undefined
+      minViewers: undefined,
+      streamerName: ''
     };
     // Lancer une recherche sans filtres
     this.discoverStream();

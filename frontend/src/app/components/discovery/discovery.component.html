@@ -108,6 +108,18 @@
           </select>
         </div>
 
+        <div class="filter-group">
+          <label for="streamer-filter">Nom du streamer</label>
+          <input 
+            id="streamer-filter" 
+            type="text"
+            class="filter-input"
+            placeholder="Rechercher un streamer spécifique..."
+            [(ngModel)]="filters.streamerName"
+            (input)="onStreamerSearchChange()"
+          >
+        </div>
+
         <div class="filter-actions">
           <button class="btn btn-primary" (click)="discoverStreamWithFilters()" [disabled]="isLoading">
             <span class="icon-search">🔍</span>

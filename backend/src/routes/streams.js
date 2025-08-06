@@ -14,6 +14,9 @@ router.get('/', streamController.getStreams);
 // GET /api/streams/search-game - Rechercher un jeu
 router.get('/search-game', streamController.searchGame);
 
+// GET /api/streams/search-streamer/:streamerName - Rechercher un streamer spécifique
+router.get('/search-streamer/:streamerName', streamController.searchStreamer);
+
 // GET /api/streams/games/search - Rechercher des jeux par nom (nouvelle route)
 router.get('/games/search', streamController.searchGames);
 

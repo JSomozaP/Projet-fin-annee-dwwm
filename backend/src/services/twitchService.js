@@ -530,32 +530,38 @@ class TwitchService {
         }
       });
 
-      return response.data.data;
+      // Retourner le premier utilisateur trouvé (ou null si aucun)
+      return response.data.data.length > 0 ? response.data.data[0] : null;
     } catch (error) {
       console.error(`❌ Erreur lors de la récupération de l'utilisateur ${login}:`, error.message);
       return null;
     }
   }
 
-  // Vérifier si un streamer est en live
-  async isStreamerLive(streamerName) {
+  // Vérifier si un streamer est en live et retourner les infos du stream
+  async isStreamerLive(userIdOrLogin) {
     try {
       await this.getAccessToken();
+      
+      // Vérifier si c'est un ID numérique ou un login
+      const isUserId = /^\d+$/.test(userIdOrLogin);
       
       const response = await axios.get(`${this.baseURL}/streams`, {
         headers: {
           'Client-ID': this.clientId,
           'Authorization': `Bearer ${this.accessToken}`
         },
-        params: {
-          user_login: streamerName
+        params: isUserId ? {
+          user_id: userIdOrLogin
+        } : {
+          user_login: userIdOrLogin
         }
       });
 
-      return response.data.data.length > 0;
+      return response.data.data.length > 0 ? response.data.data[0] : null;
     } catch (error) {
-      console.error(`❌ Erreur lors de la vérification du statut live de ${streamerName}:`, error.message);
-      return false;
+      console.error(`❌ Erreur lors de la vérification du statut live de ${userIdOrLogin}:`, error.message);
+      return null;
     }
   }
 

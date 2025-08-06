@@ -14,6 +14,8 @@ Streamyscovery permet de **découvrir facilement les petits streamers** (1-10 vi
 - 🔍 **Découverte de petits streamers** avec moins de 10 viewers
 - 🌍 **Filtrage multilingue** (français, anglais, espagnol, chinois, etc.)
 - 🎮 **Recherche par jeu** avec autocomplétion intelligente
+- 👤 **Recherche de streamers spécifiques** par nom (en live ou hors ligne)
+- ⭐ **Système de favoris** avec confirmation de suppression
 - ⚡ **Performance optimisée** grâce à un système de cache avancé
 - 📱 **Interface moderne** avec visualisation plein écran des streams
 
@@ -149,6 +151,19 @@ ng serve
 - **Filtrage avancé** : Par jeu, langue, nombre de viewers
 - **Exclusion de doublons** : Évite de revoir les mêmes streams
 
+### **👤 Recherche de Streamers Spécifiques**
+- **Recherche en temps réel** : Trouvez n'importe quel streamer Twitch par nom
+- **Support streamers hors ligne** : Informations complètes même si pas en live
+- **Détection automatique du statut** : Distinction claire entre live/hors ligne
+- **Intégration complète** : Ajout aux favoris et visualisation directe
+
+### **⭐ Système de Favoris**
+- **Sauvegarde persistante** en base de données
+- **Authentification OAuth Twitch** optionnelle
+- **Gestion des favoris** avec interface dédiée
+- **Confirmation de suppression** : Modal de confirmation pour éviter les suppressions accidentelles
+- **Animations fluides** : Interface moderne avec transitions CSS
+
 ### **🌍 Support Multilingue**
 - Français, Anglais, Espagnol, Chinois, Russe, Allemand...
 - Détection automatique selon les préférences utilisateur
@@ -164,21 +179,17 @@ ng serve
 - **Player Twitch intégré** avec contrôles natifs
 - **Informations streamer** : Viewers, langue, catégorie
 
-### **⭐ Système de Favoris**
-- **Sauvegarde persistante** en base de données
-- **Authentification OAuth Twitch** optionnelle
-- **Gestion des favoris** avec interface dédiée
-
 ## 📊 **API Endpoints**
 
 ### **Streams**
 ```http
-GET  /api/streams/discover              # Découverte intelligente
-GET  /api/streams/random                # Stream aléatoire  
-GET  /api/streams/games/search?query=   # Recherche jeux autocomplete
-GET  /api/streams/cache/stats           # Statistiques cache
-POST /api/streams/cache/refresh         # Rafraîchir cache
-POST /api/streams/cache/update-games    # Force update jeux populaires
+GET  /api/streams/discover                    # Découverte intelligente
+GET  /api/streams/random                      # Stream aléatoire  
+GET  /api/streams/search-streamer/:name       # 🆕 Recherche streamer spécifique
+GET  /api/streams/games/search?query=         # Recherche jeux autocomplete
+GET  /api/streams/cache/stats                 # Statistiques cache
+POST /api/streams/cache/refresh               # Rafraîchir cache
+POST /api/streams/cache/update-games          # Force update jeux populaires
 ```
 
 ### **Authentification**
@@ -250,6 +261,32 @@ zh_18122_any      → 25 streams chinois WoW tous viewers
 - **Fusion intelligente** : Nouveaux streams + cache existant
 - **Déduplication** : Évite les doublons par `user_id`
 
+### **👤 Algorithme de Recherche de Streamers**
+
+**Pipeline de recherche :**
+```javascript
+// 1. Recherche utilisateur Twitch
+const streamerInfo = await twitchService.getUserByLogin(streamerName);
+
+// 2. Vérification du statut live
+const streamData = await twitchService.isStreamerLive(streamerInfo.id);
+
+// 3. Normalisation des données
+const normalizedData = {
+  id: streamerInfo.id,
+  display_name: streamerInfo.display_name,
+  isLive: streamData !== null,
+  viewer_count: streamData?.viewer_count || 0,
+  game_name: streamData?.game_name || 'Hors ligne'
+};
+```
+
+**Gestion des cas d'usage :**
+- **Streamer en live** : Données complètes du stream actuel
+- **Streamer hors ligne** : Informations de profil avec statut offline
+- **Streamer inexistant** : Message d'erreur informatif
+- **Erreur API** : Fallback gracieux avec cache si disponible
+
 ### **🔒 Sécurité & Authentification**
 
 **OAuth Twitch :**
@@ -317,10 +354,14 @@ GET /api/streams/cache/stats
 - **Mode debug** : Variables d'environnement pour plus de logs
 
 ### **Évolutions Prévues**
+- [x] **Recherche de streamers spécifiques** : Implémenté (Août 2025)
+- [x] **Confirmation de suppression favoris** : Implémenté (Août 2025)
 - [ ] **Recommandations IA** : Suggestions basées sur l'historique
 - [ ] **Statistiques streamers** : Graphiques de croissance
 - [ ] **Notifications** : Alerte quand streamer favori en ligne
 - [ ] **Mode hors-ligne** : Cache persistant pour usage nomade
+- [ ] **Filtres avancés** : Par tags, catégories personnalisées
+- [ ] **Partage social** : Partage de découvertes sur réseaux sociaux
 
 ## 🤝 **Remerciements**
 
@@ -333,6 +374,71 @@ GET /api/streams/cache/stats
 **💡 Streamyscovery : Parce que chaque petit streamer mérite sa chance !**
 
 *Développé avec ❤️ pour la communauté gaming*
+
+## 🆕 **Dernières Améliorations (Août 2025)**
+
+### **🔍 Recherche de Streamers Spécifiques**
+- **Fonctionnalité complète** : Recherche de n'importe quel streamer Twitch par nom
+- **Support hors ligne** : Affichage des informations même pour les streamers non actifs
+- **API backend robuste** : Intégration avec l'API Twitch pour données temps réel
+- **Interface utilisateur intuitive** : Champ de recherche dédié avec autocomplétion
+- **Gestion d'erreurs** : Messages informatifs selon le statut du streamer
+
+**Exemple d'utilisation :**
+```typescript
+// Recherche en temps réel pendant la saisie
+onStreamerSearchChange(streamerName: string) {
+  if (streamerName.trim().length >= 3) {
+    this.searchSpecificStreamer(streamerName.trim());
+  }
+}
+```
+
+### **⭐ Amélioration du Système de Favoris**
+- **Modal de confirmation** : Prévention des suppressions accidentelles
+- **Animations CSS** : Transitions fluides (fadeIn, slideIn)
+- **Design responsive** : Interface adaptée mobile et desktop
+- **Gestion d'état robuste** : Réactualisation automatique après suppression
+
+**Fonctionnalités du modal :**
+```html
+<!-- Modal avec animations CSS natives -->
+<div class="modal-overlay" [class.show]="showDeleteConfirmation">
+  <div class="modal-content">
+    <h3>Confirmer la suppression</h3>
+    <p>Êtes-vous sûr de vouloir supprimer ce favori ?</p>
+    <button (click)="confirmDeleteFavorite()">Confirmer</button>
+    <button (click)="cancelDelete()">Annuler</button>
+  </div>
+</div>
+```
+
+### **🔧 Améliorations Techniques**
+
+#### **Backend - Intégration Twitch API**
+- **Nouvelle route** : `/api/streams/search-streamer/:name`
+- **Service TwitchService amélioré** :
+  - `getUserByLogin()` : Récupération des données utilisateur
+  - `isStreamerLive()` : Vérification du statut en live avec données complètes
+  - Gestion des erreurs et fallbacks gracieux
+
+#### **Frontend - TypeScript & Interfaces**
+- **Interfaces étendues** : Support des nouvelles propriétés de l'API
+- **Stream interface** : Ajout de `isLive`, `viewer_count`, etc.
+- **Normalisation des données** : Compatibilité entre différents formats d'API
+- **Gestion d'erreurs robuste** : Validation des données et fallbacks
+
+### **🎨 Améliorations UX/UI**
+- **Feedback visuel** : Indicateurs de chargement pendant les recherches
+- **Messages informatifs** : Distinction claire entre streamers en ligne/hors ligne
+- **Prévention d'erreurs** : Validation des saisies et confirmations
+- **Interface cohérente** : Design uniforme entre découverte et recherche spécifique
+
+### **📈 Performances**
+- **Optimisation des appels API** : Cache intelligent pour les recherches fréquentes
+- **Debouncing** : Évite les appels API excessifs pendant la saisie
+- **Gestion mémoire** : Nettoyage automatique des données obsolètes
+- **TypeScript strict** : Prévention des erreurs à la compilation
 
 ## 🔧 **Installation & Configuration**
 

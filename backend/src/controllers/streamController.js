@@ -268,6 +268,93 @@ class StreamController {
       });
     }
   }
+
+  // Rechercher un streamer spécifique par nom
+  async searchStreamer(req, res) {
+    try {
+      const { streamerName } = req.params;
+      
+      console.log(`🔍 Recherche du streamer: ${streamerName}`);
+      
+      if (!streamerName || streamerName.trim().length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Le nom du streamer est requis'
+        });
+      }
+
+      // Rechercher l'utilisateur Twitch
+      const streamerInfo = await twitchService.getUserByLogin(streamerName.trim());
+      
+      if (!streamerInfo) {
+        console.log(`❌ Streamer "${streamerName}" non trouvé`);
+        return res.json({
+          success: false,
+          message: `Streamer "${streamerName}" non trouvé sur Twitch`
+        });
+      }
+
+      console.log(`✅ Streamer trouvé: ${streamerInfo.display_name} (ID: ${streamerInfo.id})`);
+
+      // Vérifier si le streamer est en live
+      const streamData = await twitchService.isStreamerLive(streamerInfo.id);
+      
+      let responseData = {
+        id: streamerInfo.id,
+        user_name: streamerInfo.login,
+        user_login: streamerInfo.login,
+        display_name: streamerInfo.display_name,
+        profile_image_url: streamerInfo.profile_image_url,
+        description: streamerInfo.description || 'Aucune description',
+        isLive: streamData !== null,
+        embedUrl: `https://player.twitch.tv/?channel=${streamerInfo.login}`,
+        profileUrl: `https://twitch.tv/${streamerInfo.login}`
+      };
+
+      // Si le streamer est en live, ajouter les infos du stream
+      if (streamData) {
+        responseData = {
+          ...responseData,
+          title: streamData.title,
+          game_name: streamData.game_name,
+          game_id: streamData.game_id,
+          language: streamData.language,
+          viewer_count: streamData.viewer_count,
+          thumbnail_url: streamData.thumbnail_url?.replace('{width}', '640').replace('{height}', '360') || '',
+          started_at: streamData.started_at,
+          type: 'live'
+        };
+        console.log(`🎮 ${streamerInfo.display_name} est en live: ${streamData.title} (${streamData.viewer_count} viewers)`);
+      } else {
+        // Si pas en live, données par défaut
+        responseData = {
+          ...responseData,
+          title: `Chaîne de ${streamerInfo.display_name}`,
+          game_name: 'Hors ligne',
+          game_id: null,
+          language: 'fr',
+          viewer_count: 0,
+          thumbnail_url: streamerInfo.profile_image_url,
+          type: 'offline'
+        };
+        console.log(`💤 ${streamerInfo.display_name} n'est pas en live`);
+      }
+
+      res.json({
+        success: true,
+        data: responseData,
+        message: streamData ? `${streamerName} est actuellement en live !` : `${streamerName} trouvé mais n'est pas en live.`
+      });
+
+    } catch (error) {
+      console.error('❌ Erreur dans searchStreamer:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la recherche du streamer',
+        error: error.message
+      });
+    }
+  }
 }
 
 module.exports = new StreamController();

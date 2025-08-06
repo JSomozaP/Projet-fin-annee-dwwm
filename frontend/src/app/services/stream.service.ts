@@ -14,6 +14,16 @@ export interface Stream {
   nbViewers: number;
   thumbnailUrl: string;
   embedUrl: string;
+  isLive?: boolean; // Nouvelle propriété pour indiquer si le streamer est en live
+  // Propriétés additionnelles pour compatibilité API Twitch
+  user_name?: string;
+  user_login?: string;
+  game_name?: string;
+  thumbnail_url?: string;
+  viewer_count?: number;
+  id?: string;
+  title?: string;
+  startedAt?: string;
 }
 
 export interface StreamFilters {
@@ -28,6 +38,7 @@ export interface ApiResponse<T> {
   success: boolean;
   data?: T;
   error?: string;
+  message?: string; // Nouvelle propriété pour les messages informatifs
 }
 
 export interface ViewedStream {
@@ -90,16 +101,22 @@ export class StreamService {
 
   // 📝 Marquer un stream comme vu (version enrichie)
   markStreamAsViewed(stream: Stream): void {
+    // Vérifier que le stream a les propriétés nécessaires
+    if (!stream || !stream.streamerId) {
+      console.warn('Stream invalide passé à markStreamAsViewed:', stream);
+      return;
+    }
+    
     // Ajouter l'ID pour exclusion
     this.viewedStreams.add(stream.streamerId);
     
     // Ajouter les détails pour l'historique
     const viewedStream: ViewedStream = {
       streamerId: stream.streamerId,
-      streamerName: stream.streamerName,
-      gameName: stream.jeu,
-      thumbnailUrl: stream.thumbnailUrl,
-      viewerCount: stream.nbViewers,
+      streamerName: stream.streamerName || stream.user_name || 'Inconnu',
+      gameName: stream.jeu || stream.game_name || 'Jeu inconnu',
+      thumbnailUrl: stream.thumbnailUrl || stream.thumbnail_url || '',
+      viewerCount: stream.nbViewers || stream.viewer_count || 0,
       viewedAt: new Date()
     };
     
@@ -142,7 +159,10 @@ export class StreamService {
     return this.http.get<ApiResponse<Stream>>(`${environment.apiUrl}/streams/random`, { headers });
   }
 
-  formatViewerCount(count: number): string {
+  formatViewerCount(count: number | undefined): string {
+    if (count === undefined || count === null || isNaN(count)) {
+      return '0';
+    }
     if (count >= 1000000) {
       return `${(count / 1000000).toFixed(1)}M`;
     } else if (count >= 1000) {
@@ -161,6 +181,13 @@ export class StreamService {
     const params = new HttpParams().set('query', query);
     
     return this.http.get<ApiResponse<string[]>>(`${environment.apiUrl}/streams/games/search`, { headers, params });
+  }
+
+  // Rechercher un streamer spécifique par nom
+  searchStreamerByName(streamerName: string): Observable<ApiResponse<Stream>> {
+    const headers = this.getAuthHeaders();
+    
+    return this.http.get<ApiResponse<Stream>>(`${environment.apiUrl}/streams/search-streamer/${encodeURIComponent(streamerName)}`, { headers });
   }
 }
 
