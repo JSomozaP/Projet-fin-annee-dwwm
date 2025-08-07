@@ -1,4 +1,5 @@
 const twitchService = require('../services/twitchService');
+const questService = require('../services/questService');
 
 class StreamController {
   // Découvrir un stream avec la logique intelligente
@@ -49,6 +50,20 @@ class StreamController {
         });
       }
 
+      // 🎯 Tracker la découverte pour les quêtes
+      if (userId) {
+        try {
+          await questService.updateQuestProgress(userId, 'all', {
+            action: 'stream_discovered',
+            viewerCount: stream.nbViewers,
+            gameId: stream.gameId,
+            language: stream.langue
+          });
+        } catch (questError) {
+          console.log('⚠️ Erreur tracking quête (non bloquant):', questError.message);
+        }
+      }
+
       res.json({
         success: true,
         data: stream,
@@ -83,6 +98,21 @@ class StreamController {
           success: false,
           message: 'Aucun stream trouvé'
         });
+      }
+
+      // 🎯 Tracker la découverte de stream aléatoire pour les quêtes
+      const userId = req.user?.id;
+      if (userId) {
+        try {
+          await questService.updateQuestProgress(userId, 'all', {
+            action: 'random_stream_discovered',
+            viewerCount: stream.nbViewers,
+            gameId: stream.gameId,
+            language: stream.langue
+          });
+        } catch (questError) {
+          console.log('⚠️ Erreur tracking quête (non bloquant):', questError.message);
+        }
       }
 
       res.json({

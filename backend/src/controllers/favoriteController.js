@@ -1,5 +1,6 @@
 const { Favorite } = require('../models');
 const twitchService = require('../services/twitchService');
+const questService = require('../services/questService');
 
 class FavoriteController {
   // Ajouter un stream aux favoris
@@ -53,6 +54,17 @@ class FavoriteController {
         gameId: gameId || null,
         gameName: gameName || null
       });
+
+      // 🎯 Tracker l'ajout aux favoris pour les quêtes
+      try {
+        await questService.updateQuestProgress(userId, 'all', {
+          action: 'favorite_added',
+          streamerId,
+          gameId: gameId || null
+        });
+      } catch (questError) {
+        console.log('⚠️ Erreur tracking quête (non bloquant):', questError.message);
+      }
 
       res.status(201).json({
         success: true,

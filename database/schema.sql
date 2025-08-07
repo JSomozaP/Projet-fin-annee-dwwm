@@ -16,6 +16,65 @@ CREATE TABLE utilisateur (
   preferences JSON
 );
 
+-- ========================================
+-- NOUVELLES TABLES POUR LA GAMIFICATION
+-- ========================================
+
+-- Table des quêtes
+CREATE TABLE quests (
+  id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  type ENUM('daily', 'weekly', 'monthly', 'achievement') NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  description TEXT NOT NULL,
+  xpReward INT DEFAULT 0,
+  badgeReward VARCHAR(100),
+  requirement INT DEFAULT 1,
+  category VARCHAR(100) NOT NULL,
+  isActive BOOLEAN DEFAULT TRUE,
+  conditions JSON,
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Table de progression des quêtes par utilisateur
+CREATE TABLE user_quests (
+  id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  userId VARCHAR(100) NOT NULL,
+  questId VARCHAR(36) NOT NULL,
+  progress INT DEFAULT 0,
+  isCompleted BOOLEAN DEFAULT FALSE,
+  completedAt DATETIME NULL,
+  resetDate DATETIME NULL,
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (questId) REFERENCES quests(id) ON DELETE CASCADE,
+  UNIQUE KEY unique_user_quest (userId, questId)
+);
+
+-- Table de progression globale des utilisateurs
+CREATE TABLE user_progressions (
+  id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  userId VARCHAR(100) UNIQUE NOT NULL,
+  level INT DEFAULT 1,
+  totalXP INT DEFAULT 0,
+  currentXP INT DEFAULT 0,
+  nextLevelXP INT DEFAULT 1000,
+  badges JSON DEFAULT ('[]'),
+  titles JSON DEFAULT ('[]'),
+  currentTitle VARCHAR(100),
+  streamsDiscovered INT DEFAULT 0,
+  totalWatchTime INT DEFAULT 0,
+  raidsInitiated INT DEFAULT 0,
+  sponsorshipsCreated INT DEFAULT 0,
+  subscriptionTier ENUM('free', 'supporter', 'champion', 'legende') DEFAULT 'free',
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- ========================================
+-- TABLES EXISTANTES
+-- ========================================
+
 -- Table pour les filtres de recherche sauvegardés
 CREATE TABLE filtres_recherche (
   id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),

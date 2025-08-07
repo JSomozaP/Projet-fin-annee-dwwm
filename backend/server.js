@@ -23,6 +23,7 @@ app.get('/', (req, res) => {
       auth: '/api/auth',
       streams: '/api/streams',
       favorites: '/api/favorites',
+      quests: '/api/quests',
       randomStream: '/api/streams/random',
       searchGame: '/api/streams/search-game',
       discover: '/api/streams/discover'
@@ -34,6 +35,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', require('./src/routes/auth'));
 app.use('/api/streams', require('./src/routes/streams'));
 app.use('/api/favorites', require('./src/routes/favorites'));
+app.use('/api/quests', require('./src/routes/quests'));
 
 // TODO: Ajouter d'autres routes
 // app.use('/api/users', require('./src/routes/users'));
