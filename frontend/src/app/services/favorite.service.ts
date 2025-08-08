@@ -37,6 +37,8 @@ export class FavoriteService {
   
   private loadingSubject = new BehaviorSubject<boolean>(false);
   public loading$ = this.loadingSubject.asObservable();
+  
+  private loadPromise: Promise<void> | null = null; // Pour éviter les appels simultanés
 
   constructor(
     private http: HttpClient
@@ -57,22 +59,39 @@ export class FavoriteService {
   loadFavorites(): void {
     if (!this.isAuthenticated()) return;
     
+    // Si un chargement est déjà en cours, ne pas relancer
+    if (this.loadPromise) {
+      console.log('🔄 Chargement des favoris déjà en cours, skip...');
+      return;
+    }
+    
+    // Si on est déjà en train de charger, attendre
+    if (this.loadingSubject.value) {
+      console.log('⏳ Chargement déjà en cours, skip...');
+      return;
+    }
+    
     this.loadingSubject.next(true);
     const headers = this.getAuthHeaders();
     
-    // Demander les informations enrichies avec vérification du statut live
-    this.http.get<ApiResponse<Favorite[]>>(`${environment.apiUrl}/favorites?checkLive=true`, { headers })
-      .subscribe({
-        next: (response) => {
-          if (response.success && response.data) {
-            this.favoritesSubject.next(response.data);
-          }
-          this.loadingSubject.next(false);
-        },
-        error: (error) => {
-          console.error('Erreur lors du chargement des favoris:', error);
-          this.loadingSubject.next(false);
+    console.log('📥 Début chargement favoris...');
+    
+    // Créer une promesse pour éviter les appels simultanés
+    this.loadPromise = this.http.get<ApiResponse<Favorite[]>>(`${environment.apiUrl}/favorites?checkLive=true`, { headers })
+      .toPromise()
+      .then((response) => {
+        if (response && response.success && response.data) {
+          this.favoritesSubject.next(response.data);
+          console.log('✅ Favoris chargés:', response.data.length);
         }
+        this.loadingSubject.next(false);
+      })
+      .catch((error) => {
+        console.error('❌ Erreur lors du chargement des favoris:', error);
+        this.loadingSubject.next(false);
+      })
+      .finally(() => {
+        this.loadPromise = null;
       });
   }
 
@@ -80,6 +99,12 @@ export class FavoriteService {
     const headers = this.getAuthHeaders();
     // Demander les informations enrichies avec vérification du statut live
     return this.http.get<ApiResponse<Favorite[]>>(`${environment.apiUrl}/favorites?checkLive=true`, { headers });
+  }
+
+  // Méthode légère pour vérifier si un streamer est en favori (sans enrichissement)
+  checkIfStreamerIsFavorite(streamerId: string): Observable<ApiResponse<{ isFavorite: boolean }>> {
+    const headers = this.getAuthHeaders();
+    return this.http.get<ApiResponse<{ isFavorite: boolean }>>(`${environment.apiUrl}/favorites/check/${streamerId}`, { headers });
   }
 
   addFavorite(streamerId: string, streamerName: string, gameName: string): Observable<ApiResponse<any>> {

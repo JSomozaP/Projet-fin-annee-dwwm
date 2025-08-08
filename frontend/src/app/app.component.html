@@ -20,6 +20,10 @@
         Favoris
         <span class="badge" *ngIf="favoriteCount > 0">{{ favoriteCount }}</span>
       </a>
+      <button class="nav-link nav-button" *ngIf="isAuthenticated" (click)="openQuestsModal()">
+        <i class="icon-quest">🎯</i>
+        Quêtes
+      </button>
     </nav>
 
     <!-- User Actions -->
@@ -64,3 +68,21 @@
     </div>
   </div>
 </footer>
+
+<!-- Modal des Quêtes -->
+<div class="modal-overlay" *ngIf="isQuestsModalOpen" (click)="closeQuestsModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">
+        <span class="title-icon">🎯</span>
+        Quêtes & Progression
+      </h2>
+      <button class="modal-close" (click)="closeQuestsModal()">
+        <span class="close-icon">✕</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <app-quests></app-quests>
+    </div>
+  </div>
+</div>

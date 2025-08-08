@@ -125,10 +125,11 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
       return;
     }
     
-    this.favoriteService.getFavorites().subscribe({
+    // Utiliser la méthode légère pour vérifier un favori spécifique
+    this.favoriteService.checkIfStreamerIsFavorite(this.currentStream.streamerId).subscribe({
       next: (response) => {
         if (response.success && response.data) {
-          this.isFavorite = response.data.some((fav: any) => fav.streamer_id === this.currentStream!.streamerId);
+          this.isFavorite = response.data.isFavorite;
         }
       },
       error: (error) => {

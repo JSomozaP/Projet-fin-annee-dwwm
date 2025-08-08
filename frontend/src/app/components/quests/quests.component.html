@@ -1,0 +1,152 @@
+<div class="quests-container">
+  <!-- État non authentifié -->
+  <div *ngIf="!isAuthenticated" class="auth-required">
+    <div class="auth-content">
+      <div class="auth-icon">🔐</div>
+      <h2>Connexion requise</h2>
+      <p>Connectez-vous avec Twitch pour accéder à vos quêtes !</p>
+      <button class="btn btn-primary btn-large" (click)="login()">
+        <span class="icon-twitch">🎮</span>
+        Se connecter avec Twitch
+      </button>
+    </div>
+  </div>
+
+  <!-- Contenu authentifié -->
+  <div *ngIf="isAuthenticated">
+    <!-- Progression utilisateur -->
+    <div *ngIf="userProgression" class="user-progression">
+      <div class="progression-card">
+        <div class="level-info">
+          <div class="level-badge">
+            <span class="level-number">{{ userProgression.level }}</span>
+            <span class="level-label">Niveau</span>
+          </div>
+          <div class="level-details">
+            <h3 class="user-title">{{ userProgression.currentTitle || 'Explorateur Débutant' }}</h3>
+            <div class="xp-bar">
+              <div class="xp-progress" [style.width.%]="getLevelProgressPercentage()"></div>
+            </div>
+            <div class="xp-text">
+              {{ userProgression.currentXP }} / {{ userProgression.nextLevelXP }} XP
+            </div>
+          </div>
+        </div>
+        
+        <div class="progression-stats">
+          <div class="stat-item">
+            <span class="stat-icon">⭐</span>
+            <span class="stat-value">{{ userProgression.totalXP }}</span>
+            <span class="stat-label">XP Total</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-icon">🏅</span>
+            <span class="stat-value">{{ userProgression.badges.length }}</span>
+            <span class="stat-label">Badges</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-icon">🎖️</span>
+            <span class="stat-value">{{ userProgression.titles.length }}</span>
+            <span class="stat-label">Titres</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtres de quêtes -->
+    <div class="quest-filters">
+      <button 
+        *ngFor="let type of questTypes"
+        class="filter-btn"
+        [class.active]="selectedType === type.value"
+        (click)="selectFilter(type.value)"
+      >
+        {{ type.label }}
+      </button>
+    </div>
+
+    <!-- État de chargement -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement des quêtes...</p>
+    </div>
+
+    <!-- Liste des quêtes -->
+    <div *ngIf="!isLoading" class="quests-grid">
+      <div 
+        *ngFor="let quest of filteredQuests; trackBy: trackByQuestId"
+        class="quest-card"
+        [class.completed]="quest.isCompleted"
+      >
+        <div class="quest-header">
+          <div class="quest-icons">
+            <span class="quest-type-icon">{{ getQuestTypeIcon(quest.type) }}</span>
+            <span class="quest-category-icon">{{ getQuestCategoryIcon(quest.category) }}</span>
+          </div>
+          <div class="quest-status" *ngIf="quest.isCompleted">
+            <span class="completed-icon">✅</span>
+          </div>
+        </div>
+
+        <div class="quest-content">
+          <h3 class="quest-title">{{ quest.title }}</h3>
+          <p class="quest-description">{{ quest.description }}</p>
+          
+          <div class="quest-progress">
+            <div class="progress-bar">
+              <div 
+                class="progress-fill"
+                [style.width.%]="getProgressPercentage(quest)"
+              ></div>
+            </div>
+            <div class="progress-text">
+              {{ quest.progress }} / {{ quest.requirement }}
+              <span class="progress-percentage">({{ getProgressPercentage(quest) | number:'1.0-0' }}%)</span>
+            </div>
+          </div>
+
+          <div class="quest-rewards">
+            <div class="reward-item">
+              <span class="reward-icon">⭐</span>
+              <span class="reward-value">+{{ quest.xpReward }} XP</span>
+            </div>
+            <div class="reward-item" *ngIf="quest.badgeReward">
+              <span class="reward-icon">🏅</span>
+              <span class="reward-value">{{ quest.badgeReward }}</span>
+            </div>
+          </div>
+
+          <div class="quest-meta">
+            <span class="quest-type-label">{{ quest.type | titlecase }}</span>
+            <span class="quest-category-label">{{ quest.category | titlecase }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Message si aucune quête -->
+    <div *ngIf="!isLoading && filteredQuests.length === 0" class="empty-quests">
+      <div class="empty-content">
+        <div class="empty-icon">🎯</div>
+        <h2>Aucune quête disponible</h2>
+        <p>Il n'y a pas de quêtes de ce type pour le moment.</p>
+        <button class="btn btn-primary" (click)="selectFilter('all')">
+          Voir toutes les quêtes
+        </button>
+      </div>
+    </div>
+
+    <!-- Appel à l'action -->
+    <div *ngIf="!isLoading && quests.length === 0" class="quest-cta">
+      <div class="cta-content">
+        <div class="cta-icon">🚀</div>
+        <h2>Commencez votre aventure !</h2>
+        <p>Découvrez des streams pour débloquer vos premières quêtes.</p>
+        <button class="btn btn-primary btn-large" (click)="goToDiscovery()">
+          <span class="icon-discover">🔍</span>
+          Découvrir des streams
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

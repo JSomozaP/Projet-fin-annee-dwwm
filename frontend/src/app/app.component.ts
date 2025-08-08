@@ -5,11 +5,12 @@ import { Subject, takeUntil } from 'rxjs';
 
 import { AuthService, User } from './services/auth.service';
 import { FavoriteService } from './services/favorite.service';
+import { QuestsComponent } from './components/quests/quests.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, QuestsComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
@@ -20,6 +21,9 @@ export class AppComponent implements OnInit, OnDestroy {
   isAuthenticated = false;
   user: User | null = null;
   favoriteCount = 0;
+  
+  // État du modal des quêtes
+  isQuestsModalOpen = false;
 
   private destroy$ = new Subject<void>();
 
@@ -119,5 +123,14 @@ export class AppComponent implements OnInit, OnDestroy {
   openContact(): void {
     // TODO: Implémenter modal Contact
     console.log('Contact clicked');
+  }
+
+  // Gestion du modal des quêtes
+  openQuestsModal(): void {
+    this.isQuestsModalOpen = true;
+  }
+
+  closeQuestsModal(): void {
+    this.isQuestsModalOpen = false;
   }
 }
