@@ -1,16 +1,17 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ViewChild } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
 
 import { AuthService, User } from './services/auth.service';
 import { FavoriteService } from './services/favorite.service';
+import { UserProfileComponent } from './components/user-profile/user-profile.component';
 import { QuestsComponent } from './components/quests/quests.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, QuestsComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, UserProfileComponent, QuestsComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
@@ -21,15 +22,18 @@ export class AppComponent implements OnInit, OnDestroy {
   isAuthenticated = false;
   user: User | null = null;
   favoriteCount = 0;
-  
-  // État du modal des quêtes
-  isQuestsModalOpen = false;
 
   private destroy$ = new Subject<void>();
 
   // Injection des services avec le nouveau système
   private authService = inject(AuthService);
   private favoriteService = inject(FavoriteService);
+
+  // Référence au composant profil utilisateur
+  @ViewChild(UserProfileComponent) userProfile!: UserProfileComponent;
+  
+  // Référence au composant quêtes
+  @ViewChild(QuestsComponent) questsComponent!: QuestsComponent;
 
   ngOnInit(): void {
     // Écouter les changements d'authentification
@@ -125,12 +129,17 @@ export class AppComponent implements OnInit, OnDestroy {
     console.log('Contact clicked');
   }
 
-  // Gestion du modal des quêtes
-  openQuestsModal(): void {
-    this.isQuestsModalOpen = true;
+  // Ouvrir le profil utilisateur
+  openUserProfile(): void {
+    if (this.userProfile) {
+      this.userProfile.openProfile();
+    }
   }
 
-  closeQuestsModal(): void {
-    this.isQuestsModalOpen = false;
+  // Ouvrir les quêtes
+  openQuests(): void {
+    if (this.questsComponent) {
+      this.questsComponent.openQuests();
+    }
   }
 }

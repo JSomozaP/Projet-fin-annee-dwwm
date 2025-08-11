@@ -15,15 +15,15 @@
         <i class="icon-discover"></i>
         Découvrir
       </a>
+      <a class="nav-link" *ngIf="isAuthenticated" (click)="openQuests()">
+        <i class="icon-quest"></i>
+        Quêtes
+      </a>
       <a routerLink="/favorites" routerLinkActive="nav-active" class="nav-link" *ngIf="isAuthenticated">
         <i class="icon-heart"></i>
         Favoris
         <span class="badge" *ngIf="favoriteCount > 0">{{ favoriteCount }}</span>
       </a>
-      <button class="nav-link nav-button" *ngIf="isAuthenticated" (click)="openQuestsModal()">
-        <i class="icon-quest">🎯</i>
-        Quêtes
-      </button>
     </nav>
 
     <!-- User Actions -->
@@ -40,7 +40,7 @@
           <div class="user-avatar">
             <img [src]="user.avatar_url || getDefaultUserAvatar(user.username)" [alt]="user.username" (error)="onUserAvatarError($event, user.username)">
           </div>
-          <span class="user-name">{{ user.username }}</span>
+          <span class="user-name clickable-username" (click)="openUserProfile()">{{ user.username }}</span>
           <button class="btn btn-ghost" (click)="logout()">
             <i class="icon-logout"></i>
           </button>
@@ -69,20 +69,8 @@
   </div>
 </footer>
 
-<!-- Modal des Quêtes -->
-<div class="modal-overlay" *ngIf="isQuestsModalOpen" (click)="closeQuestsModal()">
-  <div class="modal-container" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h2 class="modal-title">
-        <span class="title-icon">🎯</span>
-        Quêtes & Progression
-      </h2>
-      <button class="modal-close" (click)="closeQuestsModal()">
-        <span class="close-icon">✕</span>
-      </button>
-    </div>
-    <div class="modal-body">
-      <app-quests></app-quests>
-    </div>
-  </div>
-</div>
+<!-- Composant de profil utilisateur -->
+<app-user-profile #userProfile (openQuestsEvent)="openQuests()"></app-user-profile>
+
+<!-- Composant de quêtes -->
+<app-quests #questsComponent></app-quests>

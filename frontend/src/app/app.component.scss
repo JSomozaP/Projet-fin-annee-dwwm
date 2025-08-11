@@ -68,6 +68,7 @@
   border-radius: var(--radius-md);
   transition: all var(--transition-normal);
   position: relative;
+  cursor: pointer;
 }
 
 .nav-link:hover {
@@ -142,6 +143,19 @@
   color: var(--text-primary);
 }
 
+.clickable-username {
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: all var(--transition-normal);
+}
+
+.clickable-username:hover {
+  background-color: rgba(145, 70, 255, 0.2);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+
 /* ===== MAIN CONTENT ===== */
 .main-content {
   min-height: calc(100vh - 140px); /* 70px navbar + 70px footer */
@@ -183,6 +197,7 @@
 
 /* ===== ICONS (CSS-only pour l'instant) ===== */
 .icon-discover::before { content: "🔍"; }
+.icon-quest::before { content: "🏆"; }
 .icon-heart::before { content: "❤️"; }
 .icon-twitch::before { content: "🎮"; }
 .icon-logout::before { content: "🚪"; }
@@ -225,168 +240,5 @@
     flex-direction: column;
     gap: var(--spacing-md);
     text-align: center;
-  }
-}
-
-/* ===== NAV BUTTON (pour les actions sans lien) ===== */
-.nav-button {
-  background: none;
-  border: none;
-  color: inherit;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--radius-md);
-  transition: all var(--transition-normal);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--text-secondary);
-}
-
-.nav-button:hover {
-  color: var(--text-primary);
-  background: var(--bg-accent);
-  transform: translateY(-1px);
-}
-
-/* ===== MODAL DES QUÊTES ===== */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(5px);
-  z-index: 1000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 1rem;
-  animation: fadeIn 0.3s ease;
-}
-
-.modal-container {
-  background: linear-gradient(135deg, rgba(30, 30, 50, 0.95), rgba(50, 30, 80, 0.95));
-  border: 1px solid rgba(147, 51, 234, 0.3);
-  border-radius: 20px;
-  max-width: 90vw;
-  max-height: 90vh;
-  width: 1000px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  backdrop-filter: blur(20px);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-  animation: slideIn 0.3s ease;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(147, 51, 234, 0.1);
-}
-
-.modal-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.title-icon {
-  font-size: 1.8rem;
-}
-
-.modal-close {
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  color: #ffffff;
-}
-
-.modal-close:hover {
-  background: rgba(239, 68, 68, 0.3);
-  transform: scale(1.1);
-}
-
-.close-icon {
-  font-size: 1.2rem;
-  font-weight: 600;
-}
-
-.modal-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0;
-}
-
-/* ===== AJUSTEMENTS POUR LE COMPOSANT QUESTS DANS LE MODAL ===== */
-.modal-body app-quests ::ng-deep .quests-container {
-  padding: 1.5rem;
-  max-width: none;
-  min-height: auto;
-}
-
-.modal-body app-quests ::ng-deep .auth-required {
-  min-height: 300px;
-}
-
-.modal-body app-quests ::ng-deep .loading-state,
-.modal-body app-quests ::ng-deep .empty-quests,
-.modal-body app-quests ::ng-deep .quest-cta {
-  min-height: 200px;
-}
-
-/* ===== ANIMATIONS ===== */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideIn {
-  from { 
-    opacity: 0;
-    transform: translateY(-30px) scale(0.9);
-  }
-  to { 
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* ===== RESPONSIVE POUR LE MODAL ===== */
-@media (max-width: 768px) {
-  .modal-container {
-    width: 95vw;
-    max-height: 85vh;
-    margin: 1rem;
-  }
-  
-  .modal-header {
-    padding: 1rem;
-  }
-  
-  .modal-title {
-    font-size: 1.3rem;
-  }
-  
-  .modal-body app-quests ::ng-deep .quests-container {
-    padding: 1rem;
   }
 }

@@ -10,12 +10,28 @@ class TwitchService {
     this.clientSecret = process.env.TWITCH_CLIENT_SECRET;
     this.accessToken = null;
     this.tokenExpiry = null;
+    this.tokenPromise = null; // Pour éviter les appels simultanés
     this.baseURL = 'https://api.twitch.tv/helix';
+    
+    // Cache pour les informations des streamers (30 minutes)
+    this.streamerInfoCache = new Map();
+    this.streamerCacheExpiry = 30 * 60 * 1000; // 30 minutes
     
     // Nettoyage automatique du cache toutes les 10 minutes
     setInterval(() => {
       streamCacheManager.cleanExpiredCaches();
+      this.cleanStreamerCache();
     }, 10 * 60 * 1000);
+  }
+
+  // Nettoyer le cache des streamers
+  cleanStreamerCache() {
+    const now = Date.now();
+    for (const [key, value] of this.streamerInfoCache.entries()) {
+      if (now > value.expiry) {
+        this.streamerInfoCache.delete(key);
+      }
+    }
   }
 
   // Obtenir un token d'accès pour l'API Twitch
@@ -517,7 +533,23 @@ class TwitchService {
 
   // Récupérer les informations d'un utilisateur par son login
   async getUserByLogin(login) {
+    const cacheKey = `user_${login}`;
+    const now = Date.now();
+    
+    // Vérifier le cache d'abord
+    if (this.streamerInfoCache.has(cacheKey)) {
+      const cachedData = this.streamerInfoCache.get(cacheKey);
+      if (now < cachedData.expiry) {
+        console.log(`🎯 Cache HIT pour ${login}`);
+        return cachedData.data;
+      } else {
+        console.log(`⏰ Cache EXPIRED pour ${login}`);
+        this.streamerInfoCache.delete(cacheKey);
+      }
+    }
+    
     try {
+      console.log(`🌐 API call pour ${login}`);
       await this.getAccessToken();
       
       const response = await axios.get(`${this.baseURL}/users`, {
@@ -530,11 +562,20 @@ class TwitchService {
         }
       });
 
-      // Retourner le premier utilisateur trouvé (ou null si aucun)
-      return response.data.data.length > 0 ? response.data.data[0] : null;
+      // Retourner le premier utilisateur trouvé (ou tableau vide si aucun)
+      const userData = response.data.data;
+      
+      // Mettre en cache le résultat
+      this.streamerInfoCache.set(cacheKey, {
+        data: userData,
+        expiry: now + this.streamerCacheExpiry
+      });
+      
+      console.log(`💾 Cache STORE pour ${login}`);
+      return userData;
     } catch (error) {
       console.error(`❌ Erreur lors de la récupération de l'utilisateur ${login}:`, error.message);
-      return null;
+      return [];
     }
   }
 
