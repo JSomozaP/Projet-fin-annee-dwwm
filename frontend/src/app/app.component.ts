@@ -7,11 +7,12 @@ import { AuthService, User } from './services/auth.service';
 import { FavoriteService } from './services/favorite.service';
 import { UserProfileComponent } from './components/user-profile/user-profile.component';
 import { QuestsComponent } from './components/quests/quests.component';
+import { QuestNotificationComponent } from './components/quest-notification/quest-notification.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, UserProfileComponent, QuestsComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, UserProfileComponent, QuestsComponent, QuestNotificationComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })

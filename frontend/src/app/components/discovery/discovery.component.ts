@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { StreamService, Stream } from '../../services/stream.service';
 import { FavoriteService } from '../../services/favorite.service';
 import { AuthService } from '../../services/auth.service';
+import { UserProgressionService } from '../../services/user-progression.service';
 import { StreamViewerComponent } from '../stream-viewer/stream-viewer.component';
 
 export interface StreamFilters {
@@ -54,6 +55,7 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
   private streamService = inject(StreamService);
   private favoriteService = inject(FavoriteService);
   private authService = inject(AuthService);
+  private progressionService = inject(UserProgressionService);
 
   ngOnInit() {
     this.subscriptions.add(
@@ -81,6 +83,16 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    
+    // 🎯 Arrêter toutes les sessions de tracking actives
+    if (this.isAuthenticated) {
+      this.progressionService.stopAllViewingSessions();
+    }
+  }
+
+  // 🧪 Méthode de test pour déclencher une notification
+  testQuestNotification() {
+    this.progressionService.triggerTestNotification();
   }
 
   async discoverStream() {
@@ -98,7 +110,14 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
             // 📝 Marquer automatiquement le stream comme vu
             this.streamService.markStreamAsViewed(this.currentStream);
             
+            // 🎯 Tracker la découverte du stream pour les quêtes
             if (this.isAuthenticated) {
+              this.progressionService.trackStreamDiscovery(
+                this.currentStream.streamerId,
+                this.currentStream.streamerName,
+                this.currentStream.nbViewers,
+                this.currentStream.jeu
+              );
               this.checkIfFavorite();
             }
           } else {
@@ -165,6 +184,15 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
         next: (response) => {
           if (response.success) {
             this.isFavorite = true;
+            
+            // 🎯 Tracker l'ajout aux favoris pour les quêtes
+            if (this.currentStream) {
+              this.progressionService.trackFavoriteAdded(
+                this.currentStream.streamerId,
+                this.currentStream.streamerName,
+                this.currentStream.nbViewers
+              );
+            }
           } else {
             this.error = 'Erreur lors de l\'ajout du favori';
           }
@@ -182,10 +210,20 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
     
     // Passer en mode viewing au lieu d'ouvrir dans un nouvel onglet
     this.isWatchingStream = true;
+    
+    // 🎯 Démarrer le tracking de session en temps réel
+    if (this.isAuthenticated) {
+      this.progressionService.startViewingSession(this.currentStream.streamerId, this.currentStream.jeu);
+    }
   }
 
   closeStreamViewer() {
     this.isWatchingStream = false;
+    
+    // 🎯 Arrêter le tracking de session en temps réel
+    if (this.isAuthenticated && this.currentStream) {
+      this.progressionService.stopViewingSession(this.currentStream.streamerId);
+    }
   }
 
   // Nouvelles méthodes pour les filtres
@@ -372,6 +410,16 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
             // 📝 Marquer automatiquement le stream comme vu
             this.streamService.markStreamAsViewed(this.currentStream);
             
+            // 🎯 Tracker la découverte du stream pour les quêtes
+            if (this.isAuthenticated) {
+              this.progressionService.trackStreamDiscovery(
+                this.currentStream.streamerId,
+                this.currentStream.streamerName,
+                this.currentStream.nbViewers,
+                this.currentStream.jeu
+              );
+            }
+            
             this.checkIfFavorite();
           } else {
             this.error = response.error || 'Aucun stream trouvé avec ces critères';
@@ -446,6 +494,11 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
     
     // Marquer le stream comme vu (ajouter à l'historique)
     this.streamService.markStreamAsViewed(streamData);
+    
+    // 🎯 Tracker la session de visionnage pour les quêtes (durée minimale de 1 minute)
+    if (this.isAuthenticated) {
+      this.progressionService.trackViewingSession(streamData.streamerId, 1);
+    }
     
     console.log('Stream ouvert depuis les favoris:', streamData.streamerName);
   }
