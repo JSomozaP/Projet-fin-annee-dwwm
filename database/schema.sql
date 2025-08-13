@@ -1,8 +1,8 @@
--- Script de création de la base de données Twitchscovery
+-- Script de création de la base de données Streamyscovery
 -- Basé sur le MCD créé
 
-CREATE DATABASE IF NOT EXISTS twitchscovery;
-USE twitchscovery;
+CREATE DATABASE IF NOT EXISTS streamyscovery;
+USE streamyscovery;
 
 -- Table des utilisateurs avec authentification Twitch
 CREATE TABLE utilisateur (

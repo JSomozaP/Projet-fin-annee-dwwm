@@ -25,22 +25,23 @@ class UserProgression {
     try {
       const id = require('crypto').randomUUID();
       const [result] = await connection.execute(
-        `INSERT INTO user_progressions (id, user_id, level, total_xp, current_xp, next_level_xp, badges, titles, current_title, streams_discovered, favorites_added, quests_completed, subscription_bonus) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO user_progressions (id, userId, level, totalXP, currentXP, nextLevelXP, badges, titles, currentTitle, streamsDiscovered, totalWatchTime, raidsInitiated, sponsorshipsCreated, subscriptionTier) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           id,
           data.userId,
           data.level || 1,
           data.totalXP || 0,
           data.currentXP || 0,
-          data.nextLevelXP || 100,
+          data.nextLevelXP || 1000,
           JSON.stringify(data.badges || []),
           JSON.stringify(data.titles || []),
           data.currentTitle || null,
           data.streamsDiscovered || 0,
-          data.favoritesAdded || 0,
-          data.questsCompleted || 0,
-          data.subscriptionBonus || 0
+          data.totalWatchTime || 0,
+          data.raidsInitiated || 0,
+          data.sponsorshipsCreated || 0,
+          data.subscriptionTier || 'free'
         ]
       );
 
@@ -74,7 +75,7 @@ class UserProgression {
       
       if (options.where) {
         if (options.where.userId) {
-          query += ' AND user_id = ?';
+          query += ' AND userId = ?';
           params.push(options.where.userId);
         }
       }
@@ -98,15 +99,15 @@ class UserProgression {
         params.push(data.level);
       }
       if (data.totalXP !== undefined) {
-        updates.push('total_xp = ?');
+        updates.push('totalXP = ?');
         params.push(data.totalXP);
       }
       if (data.currentXP !== undefined) {
-        updates.push('current_xp = ?');
+        updates.push('currentXP = ?');
         params.push(data.currentXP);
       }
       if (data.nextLevelXP !== undefined) {
-        updates.push('next_level_xp = ?');
+        updates.push('nextLevelXP = ?');
         params.push(data.nextLevelXP);
       }
       if (data.badges !== undefined) {
@@ -118,27 +119,31 @@ class UserProgression {
         params.push(JSON.stringify(data.titles));
       }
       if (data.currentTitle !== undefined) {
-        updates.push('current_title = ?');
+        updates.push('currentTitle = ?');
         params.push(data.currentTitle);
       }
       if (data.streamsDiscovered !== undefined) {
-        updates.push('streams_discovered = ?');
+        updates.push('streamsDiscovered = ?');
         params.push(data.streamsDiscovered);
       }
-      if (data.favoritesAdded !== undefined) {
-        updates.push('favorites_added = ?');
-        params.push(data.favoritesAdded);
+      if (data.totalWatchTime !== undefined) {
+        updates.push('totalWatchTime = ?');
+        params.push(data.totalWatchTime);
       }
-      if (data.questsCompleted !== undefined) {
-        updates.push('quests_completed = ?');
-        params.push(data.questsCompleted);
+      if (data.raidsInitiated !== undefined) {
+        updates.push('raidsInitiated = ?');
+        params.push(data.raidsInitiated);
       }
-      if (data.subscriptionBonus !== undefined) {
-        updates.push('subscription_bonus = ?');
-        params.push(data.subscriptionBonus);
+      if (data.sponsorshipsCreated !== undefined) {
+        updates.push('sponsorshipsCreated = ?');
+        params.push(data.sponsorshipsCreated);
+      }
+      if (data.subscriptionTier !== undefined) {
+        updates.push('subscriptionTier = ?');
+        params.push(data.subscriptionTier);
       }
       
-      updates.push('date_modification = CURRENT_TIMESTAMP');
+      updates.push('updatedAt = CURRENT_TIMESTAMP');
       params.push(this.id);
       
       const [result] = await connection.execute(

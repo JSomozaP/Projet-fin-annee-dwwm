@@ -32,8 +32,8 @@ export interface Quest {
   completedAt?: Date;
 }
 
-export // Interfaces pour les notifications
-interface QuestNotification {
+// Interfaces pour les notifications
+export interface QuestNotification {
   id: string;
   questTitle: string;
   questDescription: string;
@@ -100,62 +100,88 @@ export class UserProgressionService implements OnDestroy {
     }
   };
 
-  // Système de niveaux
+  // Système de niveaux étendu - 200 niveaux
   private levelSystem: LevelInfo[] = [
-    { level: 1, requiredXP: 0, rewards: { title: 'Nouveau Spectateur', badge: 'newcomer' } },
-    { level: 2, requiredXP: 500, rewards: { title: 'Curieux', badge: 'curious' } },
-    { level: 3, requiredXP: 1200, rewards: { title: 'Visiteur Régulier', badge: 'regular_visitor' } },
-    { level: 4, requiredXP: 2000, rewards: { title: 'Découvreur Novice', badge: 'novice_discoverer' } },
-    { level: 5, requiredXP: 3000, rewards: { title: 'Explorateur', badge: 'explorer', features: ['Favoris Étendus'] } },
-    { level: 6, requiredXP: 4500, rewards: { title: 'Aventurier', badge: 'adventurer' } },
-    { level: 7, requiredXP: 6500, rewards: { title: 'Chasseur de Talents', badge: 'talent_hunter' } },
-    { level: 8, requiredXP: 9000, rewards: { title: 'Éclaireur', badge: 'scout' } },
-    { level: 9, requiredXP: 12000, rewards: { title: 'Navigateur Expert', badge: 'expert_navigator' } },
-    { level: 10, requiredXP: 15500, rewards: { title: 'Scout Expert', badge: 'expert_scout', features: ['Speed Dating Premium'] } },
-    { level: 11, requiredXP: 19500, rewards: { title: 'Détective de Streams', badge: 'stream_detective' } },
-    { level: 12, requiredXP: 24000, rewards: { title: 'Connaisseur', badge: 'connoisseur' } },
-    { level: 13, requiredXP: 29000, rewards: { title: 'Fin Limier', badge: 'fine_tracker' } },
-    { level: 14, requiredXP: 34500, rewards: { title: 'Maître Explorateur', badge: 'master_explorer' } },
-    { level: 15, requiredXP: 40500, rewards: { title: 'Découvreur Confirmé', badge: 'confirmed_discoverer', features: ['Notifications Priority'] } },
-    { level: 16, requiredXP: 47000, rewards: { title: 'Vétéran de la Découverte', badge: 'discovery_veteran' } },
-    { level: 17, requiredXP: 54000, rewards: { title: 'Champion des Streamers', badge: 'streamer_champion' } },
-    { level: 18, requiredXP: 61500, rewards: { title: 'Gardien de la Communauté', badge: 'community_guardian' } },
-    { level: 19, requiredXP: 69500, rewards: { title: 'Sage du Streaming', badge: 'streaming_sage' } },
-    { level: 20, requiredXP: 78000, rewards: { title: 'Parrain', badge: 'sponsor', features: ['Boost Gratuit +1'] } },
-    { level: 21, requiredXP: 87000, rewards: { title: 'Protecteur des Micro-Streamers', badge: 'micro_protector' } },
-    { level: 22, requiredXP: 96500, rewards: { title: 'Oracle de Twitch', badge: 'twitch_oracle' } },
-    { level: 23, requiredXP: 106500, rewards: { title: 'Maître de la Variété', badge: 'variety_master' } },
-    { level: 24, requiredXP: 117000, rewards: { title: 'Seigneur des Discoveries', badge: 'discovery_lord' } },
-    { level: 25, requiredXP: 128000, rewards: { title: 'Mentor Communautaire', badge: 'community_mentor', features: ['Recommandations Personnalisées'] } },
-    { level: 26, requiredXP: 139500, rewards: { title: 'Archiviste des Streams', badge: 'stream_archivist' } },
-    { level: 27, requiredXP: 151500, rewards: { title: 'Gardien du Savoir', badge: 'knowledge_keeper' } },
-    { level: 28, requiredXP: 164000, rewards: { title: 'Maître des Quêtes', badge: 'quest_master' } },
-    { level: 29, requiredXP: 177000, rewards: { title: 'Empereur du Contenu', badge: 'content_emperor' } },
-    { level: 30, requiredXP: 190500, rewards: { title: 'Ambassadeur', badge: 'ambassador', features: ['Raids Premium'] } },
-    { level: 31, requiredXP: 204500, rewards: { title: 'Titan de la Plateforme', badge: 'platform_titan' } },
-    { level: 32, requiredXP: 219000, rewards: { title: 'Légende Vivante', badge: 'living_legend' } },
-    { level: 33, requiredXP: 234000, rewards: { title: 'Maître Suprême', badge: 'supreme_master' } },
-    { level: 34, requiredXP: 249500, rewards: { title: 'Gardien Éternel', badge: 'eternal_guardian' } },
-    { level: 35, requiredXP: 265500, rewards: { title: 'Commandeur des Streams', badge: 'stream_commander', features: ['Analytics Avancées'] } },
-    { level: 36, requiredXP: 282000, rewards: { title: 'Souverain du Divertissement', badge: 'entertainment_sovereign' } },
-    { level: 37, requiredXP: 299000, rewards: { title: 'Architecte de Communauté', badge: 'community_architect' } },
-    { level: 38, requiredXP: 316500, rewards: { title: 'Prophète du Gaming', badge: 'gaming_prophet' } },
-    { level: 39, requiredXP: 334500, rewards: { title: 'Divinité Streaming', badge: 'streaming_deity' } },
-    { level: 40, requiredXP: 353000, rewards: { title: 'Maître Découvreur', badge: 'discovery_master', features: ['Outils de Curation'] } },
-    { level: 41, requiredXP: 372000, rewards: { title: 'Transcendant', badge: 'transcendent' } },
-    { level: 42, requiredXP: 391500, rewards: { title: 'Omniscient', badge: 'omniscient' } },
-    { level: 43, requiredXP: 411500, rewards: { title: 'Gardien du Multivers', badge: 'multiverse_guardian' } },
-    { level: 44, requiredXP: 432000, rewards: { title: 'Créateur de Tendances', badge: 'trend_creator' } },
-    { level: 45, requiredXP: 453000, rewards: { title: 'Maître du Temps', badge: 'time_master', features: ['Historique Illimité'] } },
-    { level: 46, requiredXP: 474500, rewards: { title: 'Sage Millénaire', badge: 'millennial_sage' } },
-    { level: 47, requiredXP: 496500, rewards: { title: 'Empereur Cosmique', badge: 'cosmic_emperor' } },
-    { level: 48, requiredXP: 519000, rewards: { title: 'Architecte du Destin', badge: 'destiny_architect' } },
-    { level: 49, requiredXP: 542000, rewards: { title: 'Créateur de Légendes', badge: 'legend_creator' } },
-    { level: 50, requiredXP: 565500, rewards: { title: 'Légende Éternelle', badge: 'eternal_legend', features: ['Toutes fonctionnalités Premium'] } },
-    { level: 55, requiredXP: 650000, rewards: { title: 'Divinité Suprême', badge: 'supreme_deity', features: ['Statut VIP Permanent'] } },
-    { level: 60, requiredXP: 750000, rewards: { title: 'Maître de l\'Univers', badge: 'universe_master', features: ['Accès Alpha Features'] } },
-    { level: 75, requiredXP: 1000000, rewards: { title: 'Créateur du Cosmos', badge: 'cosmos_creator', features: ['Influence sur les Features'] } },
-    { level: 100, requiredXP: 2000000, rewards: { title: 'Dieu de Twitchscovery', badge: 'twitchscovery_god', features: ['Badge Unique Permanent'] } }
+    // Niveaux 1-10 : Débuts
+    { level: 1, requiredXP: 0, rewards: { title: 'Nouveau Spectateur', badge: '👶' } },
+    { level: 2, requiredXP: 100, rewards: { title: 'Curieux', badge: '🧐' } },
+    { level: 3, requiredXP: 250, rewards: { title: 'Observateur', badge: '👀' } },
+    { level: 4, requiredXP: 450, rewards: { title: 'Spectateur Actif', badge: '⚡' } },
+    { level: 5, requiredXP: 700, rewards: { title: 'Découvreur', badge: '🔍', features: ['Quêtes spéciales découverte'] } },
+    { level: 6, requiredXP: 1000, rewards: { title: 'Explorateur Junior', badge: '🗺️' } },
+    { level: 7, requiredXP: 1350, rewards: { title: 'Chasseur de Talents', badge: '🎯' } },
+    { level: 8, requiredXP: 1750, rewards: { title: 'Amateur Éclairé', badge: '💡' } },
+    { level: 9, requiredXP: 2200, rewards: { title: 'Spectateur Averti', badge: '🎓' } },
+    { level: 10, requiredXP: 2700, rewards: { title: 'Découvreur Passionné', badge: '🔥', features: ['Badge spécial niveau 10'] } },
+    
+    // Niveaux 11-25 : Développement
+    { level: 11, requiredXP: 3250, rewards: { title: 'Explorateur Confirmé', badge: '🧭' } },
+    { level: 12, requiredXP: 3850, rewards: { title: 'Connaisseur', badge: '🍷' } },
+    { level: 13, requiredXP: 4500, rewards: { title: 'Navigateur Expert', badge: '⛵' } },
+    { level: 14, requiredXP: 5200, rewards: { title: 'Chercheur de Pépites', badge: '💎' } },
+    { level: 15, requiredXP: 5950, rewards: { title: 'Gardien des Micro-Streamers', badge: '🛡️', features: ['Bonus XP micro-streamers +25%'] } },
+    { level: 16, requiredXP: 6750, rewards: { title: 'Ambassadeur', badge: '🎭' } },
+    { level: 17, requiredXP: 7600, rewards: { title: 'Éclaireur Vétéran', badge: '🏴‍☠️' } },
+    { level: 18, requiredXP: 8500, rewards: { title: 'Maître Découvreur', badge: '👑' } },
+    { level: 19, requiredXP: 9450, rewards: { title: 'Sage du Streaming', badge: '🧙‍♂️' } },
+    { level: 20, requiredXP: 10450, rewards: { title: 'Légende Naissante', badge: '⭐', features: ['Quêtes épiques débloquées'] } },
+    { level: 21, requiredXP: 11500, rewards: { title: 'Champion des Petits', badge: '🏆' } },
+    { level: 22, requiredXP: 12600, rewards: { title: 'Architecte de Communauté', badge: '🏗️' } },
+    { level: 23, requiredXP: 13750, rewards: { title: 'Virtuose de l\'Exploration', badge: '🎨' } },
+    { level: 24, requiredXP: 14950, rewards: { title: 'Gardien de la Diversité', badge: '🌈' } },
+    { level: 25, requiredXP: 16200, rewards: { title: 'MAÎTRE DE LA DÉCOUVERTE', badge: '👑', features: ['Titre MAÎTRE', 'Bonus XP découverte +50%'] } },
+    
+    // Niveaux 26-50 : Excellence
+    { level: 26, requiredXP: 17500, rewards: { title: 'Pionnier Légendaire', badge: '🚀' } },
+    { level: 27, requiredXP: 18850, rewards: { title: 'Oracle du Streaming', badge: '🔮' } },
+    { level: 28, requiredXP: 20250, rewards: { title: 'Protecteur Suprême', badge: '🛡️' } },
+    { level: 29, requiredXP: 21700, rewards: { title: 'Empereur de l\'Exploration', badge: '👑' } },
+    { level: 30, requiredXP: 23200, rewards: { title: 'COMMANDEUR ÉTERNEL', badge: '⚔️', features: ['Rang COMMANDEUR', 'Bonus XP global +25%'] } },
+    { level: 31, requiredXP: 24750, rewards: { title: 'Titan de la Diversité', badge: '🌟' } },
+    { level: 32, requiredXP: 26350, rewards: { title: 'Archiviste Ultime', badge: '📚' } },
+    { level: 33, requiredXP: 28000, rewards: { title: 'Phénix Éternel', badge: '🔥' } },
+    { level: 34, requiredXP: 29700, rewards: { title: 'Architecte des Rêves', badge: '🏰' } },
+    { level: 35, requiredXP: 31450, rewards: { title: 'SEIGNEUR DE STREAMYSCOVERY', badge: '👑', features: ['Titre SEIGNEUR', 'Accès aux quêtes mythiques'] } },
+    { level: 36, requiredXP: 33250, rewards: { title: 'Héros des Temps Modernes', badge: '🦸' } },
+    { level: 37, requiredXP: 35100, rewards: { title: 'Gardien Millénaire', badge: '🕰️' } },
+    { level: 38, requiredXP: 37000, rewards: { title: 'Conquérant d\'Univers', badge: '🌌' } },
+    { level: 39, requiredXP: 38950, rewards: { title: 'Empereur Galactique', badge: '🚀' } },
+    { level: 40, requiredXP: 40950, rewards: { title: 'DIVINITÉ MINEURE', badge: '✨', features: ['Statut DIVINITÉ', 'Pouvoirs spéciaux'] } },
+    { level: 41, requiredXP: 43000, rewards: { title: 'Avatar de la Découverte', badge: '🌟' } },
+    { level: 42, requiredXP: 45100, rewards: { title: 'Maître du Multivers', badge: '🌀' } },
+    { level: 43, requiredXP: 47250, rewards: { title: 'Créateur de Légendes', badge: '📜' } },
+    { level: 44, requiredXP: 49450, rewards: { title: 'Gardien de l\'Éternité', badge: '♾️' } },
+    { level: 45, requiredXP: 51700, rewards: { title: 'ARCHANGE DE LA COMMUNAUTÉ', badge: '👼', features: ['Rang ARCHANGE'] } },
+    { level: 46, requiredXP: 54000, rewards: { title: 'Tisserand du Destin', badge: '🕸️' } },
+    { level: 47, requiredXP: 56350, rewards: { title: 'Maître des Éléments', badge: '🌊' } },
+    { level: 48, requiredXP: 58750, rewards: { title: 'Prophète Suprême', badge: '🔮' } },
+    { level: 49, requiredXP: 61200, rewards: { title: 'Empereur des Dimensions', badge: '🌌' } },
+    { level: 50, requiredXP: 63700, rewards: { title: 'DIEU MINEUR DE STREAMYSCOVERY', badge: '⚡', features: ['Statut DIEU MINEUR', 'Pouvoirs divins'] } },
+    
+    // Niveaux 51-100 : Phase Légendaire
+    { level: 55, requiredXP: 76950, rewards: { title: 'ARCHIMAGE SUPRÊME', badge: '🧙‍♂️', features: ['Titre ARCHIMAGE'] } },
+    { level: 60, requiredXP: 91450, rewards: { title: 'DIEU MAJEUR DE LA DÉCOUVERTE', badge: '👑', features: ['Statut DIEU MAJEUR'] } },
+    { level: 65, requiredXP: 107200, rewards: { title: 'CRÉATEUR PRIMORDIAL SUPRÊME', badge: '🌅', features: ['Rang CRÉATEUR PRIMORDIAL'] } },
+    { level: 70, requiredXP: 124200, rewards: { title: 'DIEU SUPRÊME DE STREAMYSCOVERY', badge: '👑', features: ['Statut DIEU SUPRÊME', 'Contrôle total'] } },
+    { level: 75, requiredXP: 142450, rewards: { title: 'IMMORTEL VÉNÉRABLE', badge: '🏛️', features: ['Statut IMMORTEL'] } },
+    { level: 80, requiredXP: 161950, rewards: { title: 'DÉITÉ ABSOLUE', badge: '🌟', features: ['Rang DÉITÉ ABSOLUE'] } },
+    { level: 85, requiredXP: 182700, rewards: { title: 'MAÎTRE SUPRÊME DE L\'INFINI', badge: '♾️', features: ['Titre MAÎTRE SUPRÊME'] } },
+    { level: 90, requiredXP: 204700, rewards: { title: 'EMPEREUR DE L\'ÉTERNITÉ', badge: '⚔️', features: ['Rang EMPEREUR ÉTERNEL'] } },
+    { level: 95, requiredXP: 227950, rewards: { title: 'DIEU-EMPEREUR SUPRÊME', badge: '⚡', features: ['Titre DIEU-EMPEREUR'] } },
+    { level: 100, requiredXP: 252450, rewards: { title: 'MAÎTRE ABSOLU DE L\'UNIVERS STREAMING', badge: '🌌', features: ['Titre MAÎTRE ABSOLU', 'Contrôle universel'] } },
+    
+    // Niveaux 101-200 : Au-delà de la Transcendance
+    { level: 105, requiredXP: 292000, rewards: { title: 'ENTITÉ PRIMORDIALE', badge: '🌅', features: ['Statut ENTITÉ PRIMORDIALE'] } },
+    { level: 110, requiredXP: 350000, rewards: { title: 'ARCHÉTYPE PARFAIT', badge: '⚡', features: ['Statut ARCHÉTYPE'] } },
+    { level: 120, requiredXP: 500000, rewards: { title: 'EMPEREUR CONCEPTUEL', badge: '💭' } },
+    { level: 130, requiredXP: 720000, rewards: { title: 'ESSENCE PURE ABSOLUE', badge: '💎' } },
+    { level: 140, requiredXP: 1000000, rewards: { title: 'TRANSCENDANT ULTIME', badge: '✨' } },
+    { level: 150, requiredXP: 1500000, rewards: { title: 'DIEU ABSOLU ÉTERNEL', badge: '👑', features: ['Statut DIEU ABSOLU'] } },
+    { level: 160, requiredXP: 2000000, rewards: { title: 'MAÎTRE DE L\'INCONCEVABLE', badge: '❓' } },
+    { level: 170, requiredXP: 2500000, rewards: { title: 'ESSENCE MÉTA-DIVINE', badge: '⚡' } },
+    { level: 180, requiredXP: 3200000, rewards: { title: 'CRÉATEUR DE CRÉATEURS', badge: '🌟' } },
+    { level: 190, requiredXP: 4000000, rewards: { title: 'PERFECTION POST-ABSOLUE', badge: '💫' } },
+    { level: 200, requiredXP: 5000000, rewards: { title: 'MAÎTRE SUPRÊME DE STREAMYSCOVERY', badge: '👑', features: ['STATUT ULTIME : MAÎTRE SUPRÊME', 'POUVOIR OMNIPOTENT', 'LÉGENDE ÉTERNELLE ABSOLUE'] } }
   ];
 
   // Système de tracking en temps réel pour les sessions de visionnage
@@ -550,12 +576,12 @@ export class UserProgressionService implements OnDestroy {
 
   // Obtenir la progression de l'utilisateur connecté
   getUserProgression(): Observable<UserProgression> {
-    return this.http.get<UserProgression>(`${this.baseUrl}/api/quests/progression`);
+    return this.http.get<UserProgression>(`${this.baseUrl}/quests/progression`);
   }
 
   // Obtenir les quêtes de l'utilisateur
   getUserQuests(type?: string): Observable<Quest[]> {
-    let url = `${this.baseUrl}/api/quests/user`;
+    let url = `${this.baseUrl}/quests/user`;
     if (type) {
       url += `?type=${type}`;
     }
@@ -564,12 +590,33 @@ export class UserProgressionService implements OnDestroy {
 
   // Tracker une action pour les quêtes
   trackAction(action: string, data: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/quests/track-action`, { action, data });
+    const token = localStorage.getItem('token');
+    const requestOptions: any = {};
+    
+    // Extraire l'userId du token JWT
+    let userId = null;
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        userId = payload.userId;
+      } catch (error) {
+        console.warn('⚠️ Impossible de décoder le token JWT:', error);
+      }
+      
+      requestOptions.headers = {
+        'Authorization': `Bearer ${token}`
+      };
+    }
+    
+    // Inclure l'userId dans le body de la requête
+    const requestBody = { action, data, userId };
+    
+    return this.http.post(`${this.baseUrl}/quests/track-action`, requestBody, requestOptions);
   }
 
   // Changer le titre actuel
   changeTitle(title: string): Observable<any> {
-    return this.http.patch(`${this.baseUrl}/api/quests/progression/title`, { title });
+    return this.http.patch(`${this.baseUrl}/quests/progression/title`, { title });
   }
 
   // Calculer les informations de niveau
@@ -602,17 +649,24 @@ export class UserProgressionService implements OnDestroy {
     return levelInfo?.rewards || {};
   }
 
-  // Obtenir le XP nécessaire pour le prochain niveau
+  // Obtenir le XP nécessaire pour le prochain niveau (étendu jusqu'à 200)
   private getNextLevelXP(currentLevel: number): number {
     const nextLevelInfo = this.levelSystem.find(l => l.level === currentLevel + 1);
     if (nextLevelInfo) {
       return nextLevelInfo.requiredXP;
     }
     
-    // Formule pour les niveaux très élevés non définis
-    const baseXP = 300000; // XP du niveau 50
-    const increment = 50000; // Augmentation par niveau
-    return baseXP + ((currentLevel - 50) * increment);
+    // Formule pour les niveaux ultra élevés (201+) non définis explicitement
+    if (currentLevel >= 200) {
+      const baseXP = 5000000; // XP du niveau 200
+      const increment = 100000; // Augmentation massive pour niveaux post-200
+      return baseXP + ((currentLevel - 200) * increment);
+    }
+    
+    // Formule progressive pour niveaux intermédiaires manquants
+    const lastDefinedLevel = this.levelSystem[this.levelSystem.length - 1];
+    const increment = Math.max(50000, lastDefinedLevel.requiredXP * 0.15); // 15% d'augmentation minimum
+    return lastDefinedLevel.requiredXP + ((currentLevel - lastDefinedLevel.level) * increment);
   }
 
   // Vérifier si un niveau débloque des fonctionnalités

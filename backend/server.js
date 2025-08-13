@@ -17,7 +17,7 @@ testConnection();
 // Routes
 app.get('/', (req, res) => {
   res.json({ 
-    message: 'Twitchscovery API is running!',
+    message: 'Streamyscovery API is running!',
     version: '1.0.0',
     endpoints: {
       auth: '/api/auth',

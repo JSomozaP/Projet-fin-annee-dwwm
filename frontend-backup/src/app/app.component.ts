@@ -13,7 +13,7 @@ import { FavoriteService } from './services/favorite.service';
   styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit, OnDestroy {
-  title = 'Twitchscovery';
+  title = 'Streamyscovery';
   
   // États de l'authentification
   isAuthenticated = false;

@@ -46,7 +46,7 @@ export class QuestsComponent implements OnInit, OnDestroy {
   achievements: Achievement[] = [];
   questPool: QuestPool = { daily: [], weekly: [], monthly: [] };
   
-  private readonly STORAGE_KEY = 'twitchscovery_quests';
+  private readonly STORAGE_KEY = 'streamyscovery_quests';
   private readonly QUEST_RESET_HOUR = 6; // Reset à 6h du matin
   private subscriptions = new Subscription();
 
@@ -413,7 +413,7 @@ export class QuestsComponent implements OnInit, OnDestroy {
       { id: 'first_discovery', title: 'Premier Pas', description: 'Découvrez votre premier streamer', icon: '🥇', completed: true, rarity: 'common' },
       { id: 'early_supporter', title: 'Supporter précoce', description: 'Ajoutez votre premier favori', icon: '❤️', completed: true, rarity: 'common' },
       { id: 'session_explorer', title: 'Explorateur de Sessions', description: 'Regardez 5 sessions de plus de 10 minutes', icon: '🦋', completed: true, progress: 5, target: 5, rarity: 'common' },
-      { id: 'first_week', title: 'Première Semaine', description: 'Utilisez Twitchscovery pendant 7 jours', icon: '📅', completed: false, progress: 3, target: 7, rarity: 'common' },
+      { id: 'first_week', title: 'Première Semaine', description: 'Utilisez Streamyscovery pendant 7 jours', icon: '📅', completed: false, progress: 3, target: 7, rarity: 'common' },
       { id: 'social_butterfly', title: 'Papillon Social', description: 'Ajoutez 10 favoris', icon: '🦋', completed: false, progress: 4, target: 10, rarity: 'common' },
       { id: 'curious_mind', title: 'Esprit Curieux', description: 'Découvrez 25 streamers', icon: '🧠', completed: false, progress: 18, target: 25, rarity: 'common' },
       
@@ -441,7 +441,7 @@ export class QuestsComponent implements OnInit, OnDestroy {
       // Achievements légendaires (engagement extrême)
       { id: 'discovery_legend', title: 'Légende de la Découverte', description: 'Découvrez 1000 streamers uniques', icon: '👑', completed: false, progress: 342, target: 1000, rarity: 'legendary' },
       { id: 'favorites_collector', title: 'Collectionneur de Favoris', description: 'Ajoutez 500 streamers à vos favoris', icon: '⭐', completed: false, progress: 158, target: 500, rarity: 'legendary' },
-      { id: 'platform_veteran', title: 'Vétéran de la Plateforme', description: 'Utilisez Twitchscovery pendant 365 jours', icon: '🏆', completed: false, progress: 127, target: 365, rarity: 'legendary' },
+      { id: 'platform_veteran', title: 'Vétéran de la Plateforme', description: 'Utilisez Streamyscovery pendant 365 jours', icon: '🏆', completed: false, progress: 127, target: 365, rarity: 'legendary' },
       { id: 'quest_completionist', title: 'Perfectionniste Ultime', description: 'Complétez 1000 quêtes au total', icon: '✨', completed: false, progress: 89, target: 1000, rarity: 'legendary' },
       { id: 'micro_savior', title: 'Sauveur des Micro-streamers', description: 'Découvrez 200 streamers avec moins de 5 viewers', icon: '👼', completed: false, progress: 23, target: 200, rarity: 'legendary' },
       { id: 'streaming_oracle', title: 'Oracle du Streaming', description: 'Prédisez 100 futurs hits en les découvrant tôt', icon: '🔮', completed: false, progress: 12, target: 100, rarity: 'legendary' },
@@ -450,7 +450,7 @@ export class QuestsComponent implements OnInit, OnDestroy {
       { id: 'global_ambassador', title: 'Ambassadeur Mondial', description: 'Découvrez des streamers de 50 pays', icon: '🌐', completed: false, progress: 18, target: 50, rarity: 'legendary' },
       
       // Achievements mythiques (les plus rares)
-      { id: 'twitchscovery_god', title: 'Dieu de Twitchscovery', description: 'Atteignez le niveau 100', icon: '👁️', completed: false, progress: 6, target: 100, rarity: 'legendary' },
+      { id: 'streamyscovery_god', title: 'Dieu de Streamyscovery', description: 'Atteignez le niveau 100', icon: '👁️', completed: false, progress: 6, target: 100, rarity: 'legendary' },
       { id: 'universe_explorer', title: 'Explorateur de l\'Univers', description: 'Découvrez 5000 streamers uniques', icon: '🌌', completed: false, progress: 456, target: 5000, rarity: 'legendary' },
       { id: 'eternal_supporter', title: 'Supporter Éternel', description: 'Maintenez 1000 favoris actifs', icon: '♾️', completed: false, progress: 178, target: 1000, rarity: 'legendary' },
       { id: 'streaming_historian', title: 'Historien du Streaming', description: 'Documentez 2 ans d\'activité continue', icon: '📚', completed: false, progress: 127, target: 730, rarity: 'legendary' },

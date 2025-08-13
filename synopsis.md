@@ -1,9 +1,9 @@
-# Projet de fin d'année : Twitchscovery
+# Projet de fin d'année : Streamyscovery
 
 Le projet a été conçu en rapport à un constat assez flagrant de Twitch, le manque de découvrabilité des petits streamers.
 L'attention est constamment mise sur les streamers les plus connus, au détriment des streamers plus petits qui essaient de se développer.
 
-Le but de Twitchscovery est simple, vous permettre de découvrir des streamers plus petits sur les sujets qui vous intéressent, en vous permettant d'interagir avec eux.
+Le but de Streamyscovery est simple, vous permettre de découvrir des streamers plus petits sur les sujets qui vous intéressent, en vous permettant d'interagir avec eux.
 
 Concrètement, vous pourrez soit lancer une recherche complètement aléatoire, soit activer des filtres, par Pays, Jeux ou Catégories, et par Nombre de viewers pour que l'application sélectionne une chaîne en live correspondant à vos critères. Une fois la chaîne chargée, vous aurez la possibilité de participer au Chat du streamer, le follow ou le sub grâce au lien avec votre compte Twitch personnel, mais également à l'ajouter en favori sur l'application.
 

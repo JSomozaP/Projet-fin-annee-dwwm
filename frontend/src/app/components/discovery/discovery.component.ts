@@ -495,9 +495,9 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
     // Marquer le stream comme vu (ajouter à l'historique)
     this.streamService.markStreamAsViewed(streamData);
     
-    // 🎯 Tracker la session de visionnage pour les quêtes (durée minimale de 1 minute)
+    // 🎯 Démarrer le tracking de session en temps réel (comme pour openStream normale)
     if (this.isAuthenticated) {
-      this.progressionService.trackViewingSession(streamData.streamerId, 1);
+      this.progressionService.startViewingSession(streamData.streamerId, streamData.jeu || streamData.categorie);
     }
     
     console.log('Stream ouvert depuis les favoris:', streamData.streamerName);

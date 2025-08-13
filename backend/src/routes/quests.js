@@ -15,7 +15,7 @@ router.post('/initialize', questController.initializeQuests);
 router.post('/complete/:questId', questController.completeQuest);
 
 // Routes avec authentification (optionnelle pour l'instant)
-// router.get('/', auth.optional, questController.getUserQuests);
-// router.post('/track-action', auth.optional, questController.trackAction);
+// router.get('/', auth.optionalAuth, questController.getUserQuests);
+// router.post('/track-action', auth.optionalAuth, questController.trackAction);
 
 module.exports = router;
