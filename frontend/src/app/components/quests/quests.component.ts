@@ -132,11 +132,14 @@ export class QuestsComponent implements OnInit, OnDestroy {
         quest.completed = true;
         console.log(`✅ Quête complétée: ${quest.title}`);
         
+        // Créer une description claire de ce qui a été accompli
+        const accomplishmentMessage = this.generateAccomplishmentMessage(quest);
+        
         // Émettre une notification via le service
         this.userProgressionService['emitQuestNotification']({
           id: quest.id,
-          questTitle: `🎯 ${quest.title}`,
-          questDescription: quest.description,
+          questTitle: `🎯 Quête accomplie !`,
+          questDescription: accomplishmentMessage,
           reward: quest.reward,
           type: 'quest_completed' as any,
           timestamp: new Date()
@@ -464,5 +467,70 @@ export class QuestsComponent implements OnInit, OnDestroy {
 
   getQuestsByType(type: 'daily' | 'weekly' | 'monthly'): Quest[] {
     return this.quests.filter(quest => quest.type === type);
+  }
+
+  /**
+   * Générer un message clair de ce qui a été accompli
+   */
+  private generateAccomplishmentMessage(quest: Quest): string {
+    const target = quest.target;
+    const questType = quest.type;
+    
+    // Messages spécifiques selon les catégories de quêtes
+    switch (quest.category) {
+      case 'discovery':
+        if (quest.id.includes('micro')) {
+          return `Vous avez découvert ${target} micro-streamer${target > 1 ? 's' : ''} (<10 viewers) !`;
+        } else if (quest.id.includes('small')) {
+          return `Vous avez découvert ${target} petit${target > 1 ? 's' : ''} streamer${target > 1 ? 's' : ''} (<50 viewers) !`;
+        } else {
+          return `Vous avez découvert ${target} nouveau${target > 1 ? 'x' : ''} streamer${target > 1 ? 's' : ''} !`;
+        }
+        
+      case 'social':
+        if (quest.id.includes('favorite')) {
+          return `Vous avez ajouté ${target} streamer${target > 1 ? 's' : ''} à vos favoris !`;
+        } else if (quest.id.includes('loyal') || quest.id.includes('session')) {
+          return `Vous avez regardé ${target} session${target > 1 ? 's' : ''} de 10+ minutes !`;
+        } else {
+          return `Action sociale accomplie : ${target} interaction${target > 1 ? 's' : ''} !`;
+        }
+        
+      case 'time':
+        if (quest.id.includes('watch_30')) {
+          return `Vous avez regardé 30 minutes de streams !`;
+        } else if (quest.id.includes('watch_60')) {
+          return `Vous avez regardé 1 heure de streams !`;
+        } else if (quest.id.includes('multiple_sessions')) {
+          return `Vous avez regardé ${target} streams différents de 10+ minutes !`;
+        } else if (quest.id.includes('marathon')) {
+          return `Marathon accompli : ${target} heures de visionnage !`;
+        } else {
+          return `Temps de visionnage accompli : ${target} minute${target > 1 ? 's' : ''} !`;
+        }
+        
+      case 'variety':
+        if (quest.id.includes('variety') || quest.id.includes('category')) {
+          return `Vous avez exploré ${target} catégorie${target > 1 ? 's' : ''} de jeux différente${target > 1 ? 's' : ''} !`;
+        } else if (quest.id.includes('language')) {
+          return `Vous avez regardé des streams en ${target} langue${target > 1 ? 's' : ''} différente${target > 1 ? 's' : ''} !`;
+        } else {
+          return `Diversité accomplie : ${target} élément${target > 1 ? 's' : ''} varié${target > 1 ? 's' : ''} !`;
+        }
+        
+      case 'achievement':
+        if (quest.id.includes('level')) {
+          return `Niveau ${target} atteint ! Félicitations !`;
+        } else if (quest.id.includes('quest')) {
+          return `${target} quête${target > 1 ? 's' : ''} accomplie${target > 1 ? 's' : ''} ce ${questType === 'daily' ? 'jour' : questType === 'weekly' ? 'semaine' : 'mois'} !`;
+        } else if (quest.id.includes('streak')) {
+          return `Série de ${target} jour${target > 1 ? 's' : ''} consécutif${target > 1 ? 's' : ''} !`;
+        } else {
+          return `Achievement débloqué : ${quest.title} !`;
+        }
+        
+      default:
+        return `${quest.title} - ${target} objectif${target > 1 ? 's' : ''} atteint${target > 1 ? 's' : ''} !`;
+    }
   }
 }
