@@ -7,6 +7,10 @@ export const routes: Routes = [
   { path: 'discovery', component: DiscoveryComponent },
   { path: 'favorites', component: FavoritesComponent },
   { 
+    path: 'premium', 
+    loadComponent: () => import('./components/subscription/subscription.component').then(m => m.SubscriptionComponent)
+  },
+  { 
     path: 'auth/success', 
     loadComponent: () => import('./components/auth-callback/auth-callback.component').then(m => m.AuthCallbackComponent)
   },

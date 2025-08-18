@@ -201,6 +201,51 @@
 .icon-heart::before { content: "❤️"; }
 .icon-twitch::before { content: "🎮"; }
 .icon-logout::before { content: "🚪"; }
+.icon-crown::before { content: "👑"; }
+
+/* ===== PREMIUM LINK STYLES ===== */
+.premium-link {
+  background: rgba(255, 215, 0, 0.1);
+  color: #ffd700 !important;
+  font-weight: 600;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+  
+  &:hover {
+    background: rgba(255, 215, 0, 0.2);
+    color: #ffed4a !important;
+    transform: translateY(-1px);
+    border-color: rgba(255, 215, 0, 0.5);
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.2);
+  }
+  
+  &.nav-active {
+    background: rgba(255, 215, 0, 0.25);
+    border-color: rgba(255, 215, 0, 0.6);
+    color: #fff !important;
+  }
+  
+  .premium-text {
+    font-weight: 600;
+  }
+  
+  .premium-badge {
+    animation: sparkle 2s ease-in-out infinite;
+    display: inline-block;
+  }
+}
+
+@keyframes sparkle {
+  0%, 100% { 
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% { 
+    transform: scale(1.1) rotate(180deg);
+    opacity: 0.8;
+  }
+}
 
 /* ===== ANIMATIONS ===== */
 @keyframes pulse {

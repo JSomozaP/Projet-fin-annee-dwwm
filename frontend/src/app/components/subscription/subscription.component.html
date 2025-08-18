@@ -1,0 +1,208 @@
+<div class="subscription-container">
+  <!-- Header -->
+  <div class="header-section">
+    <h1 class="main-title">🌟 Streamyscovery Premium</h1>
+    <p class="subtitle">Débloquez tout le potentiel de votre expérience gaming</p>
+    <div class="free-guarantee">
+      <span class="guarantee-badge">✅ 100% Équitable</span>
+      <span class="guarantee-text">Tous les niveaux 1-200 restent gratuits pour tous</span>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Chargement des plans d'abonnement...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !isLoading" class="error-container">
+    <div class="error-icon">⚠️</div>
+    <h3>Erreur de chargement</h3>
+    <p>{{ error }}</p>
+    <button class="retry-button" (click)="retryLoadPlans()">
+      🔄 Réessayer
+    </button>
+  </div>
+
+  <!-- Plans Grid -->
+  <div *ngIf="plans && !isLoading && !error" class="plans-grid">
+    
+    <!-- Plan FREE (informatif) -->
+    <div class="plan-card plan-free">
+      <div class="plan-header">
+        <h3 class="plan-name">🆓 FREE</h3>
+        <div class="plan-price">
+          <span class="price-amount">0€</span>
+          <span class="price-period">/mois</span>
+        </div>
+      </div>
+      
+      <div class="plan-features">
+        <h4>Inclus gratuitement :</h4>
+        <ul>
+          <li>✅ Tous les niveaux 1-200</li>
+          <li>✅ 6 quêtes quotidiennes</li>
+          <li>✅ 4 quêtes hebdomadaires</li>
+          <li>✅ 3 quêtes mensuelles</li>
+          <li>✅ XP normal</li>
+          <li>✅ Interface standard</li>
+        </ul>
+      </div>
+      
+      <div class="plan-action">
+        <button class="plan-button current-plan" disabled>
+          Plan actuel
+        </button>
+      </div>
+    </div>
+
+    <!-- Plan PREMIUM -->
+    <div class="plan-card" [ngClass]="getPlanClass('premium')">
+      <div class="plan-header">
+        <h3 class="plan-name">💎 {{ plans.premium.name }}</h3>
+        <div class="plan-price">
+          <span class="price-amount">{{ plans.premium.price }}€</span>
+          <span class="price-period">/mois</span>
+        </div>
+        <div class="plan-savings">50€/an (2 mois offerts)</div>
+      </div>
+      
+      <div class="plan-features">
+        <h4>En plus du FREE :</h4>
+        <ul>
+          <li *ngFor="let feature of getPlanFeatures(plans.premium)">
+            {{ feature }}
+          </li>
+          <li>🎨 Thèmes "Dark Premium", "Blue Elegance"</li>
+          <li>🏅 Badge Premium exclusif</li>
+          <li>🎯 Quêtes premium exclusives</li>
+        </ul>
+      </div>
+      
+      <div class="plan-action">
+        <button 
+          class="plan-button plan-button-premium"
+          [disabled]="isPlanProcessing('premium')"
+          (click)="selectPlan('premium')">
+          <span *ngIf="!isPlanProcessing('premium')">{{ getButtonText('premium') }}</span>
+          <span *ngIf="isPlanProcessing('premium')" class="processing">
+            <span class="spinner-small"></span>
+            {{ getButtonText('premium') }}
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Plan VIP -->
+    <div class="plan-card" [ngClass]="getPlanClass('vip')">
+      <div class="plan-header">
+        <div class="popular-badge">⭐ POPULAIRE</div>
+        <h3 class="plan-name">👑 {{ plans.vip.name }}</h3>
+        <div class="plan-price">
+          <span class="price-amount">{{ plans.vip.price }}€</span>
+          <span class="price-period">/mois</span>
+        </div>
+        <div class="plan-savings">90€/an (2 mois offerts)</div>
+      </div>
+      
+      <div class="plan-features">
+        <h4>En plus du Premium :</h4>
+        <ul>
+          <li *ngFor="let feature of getPlanFeatures(plans.vip)">
+            {{ feature }}
+          </li>
+          <li>📊 Analytics personnelles</li>
+          <li>🎨 Thèmes "Golden VIP", "Neon Glow"</li>
+          <li>🏅 Badge VIP exclusif</li>
+          <li>🎯 +1 quête hebdomadaire</li>
+        </ul>
+      </div>
+      
+      <div class="plan-action">
+        <button 
+          class="plan-button plan-button-vip"
+          [disabled]="isPlanProcessing('vip')"
+          (click)="selectPlan('vip')">
+          <span *ngIf="!isPlanProcessing('vip')">{{ getButtonText('vip') }}</span>
+          <span *ngIf="isPlanProcessing('vip')" class="processing">
+            <span class="spinner-small"></span>
+            {{ getButtonText('vip') }}
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Plan LEGENDARY -->
+    <div class="plan-card" [ngClass]="getPlanClass('legendary')">
+      <div class="plan-header">
+        <h3 class="plan-name">🌟 {{ plans.legendary.name }}</h3>
+        <div class="plan-price">
+          <span class="price-amount">{{ plans.legendary.price }}€</span>
+          <span class="price-period">/mois</span>
+        </div>
+        <div class="plan-savings">150€/an (2 mois offerts)</div>
+      </div>
+      
+      <div class="plan-features">
+        <h4>En plus du VIP :</h4>
+        <ul>
+          <li *ngFor="let feature of getPlanFeatures(plans.legendary)">
+            {{ feature }}
+          </li>
+          <li>📊 Analytics avancées + comparaisons</li>
+          <li>🛟 Support prioritaire (24h)</li>
+          <li>🎨 Thèmes "Divine Aura", "Cosmic Master"</li>
+          <li>🏅 Titres "Seigneur Légendaire"</li>
+          <li>🎯 +2 quêtes hebdo + 1 mensuelle</li>
+        </ul>
+      </div>
+      
+      <div class="plan-action">
+        <button 
+          class="plan-button plan-button-legendary"
+          [disabled]="isPlanProcessing('legendary')"
+          (click)="selectPlan('legendary')">
+          <span *ngIf="!isPlanProcessing('legendary')">{{ getButtonText('legendary') }}</span>
+          <span *ngIf="isPlanProcessing('legendary')" class="processing">
+            <span class="spinner-small"></span>
+            {{ getButtonText('legendary') }}
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Authentication Notice -->
+  <div *ngIf="!isAuthenticated" class="auth-notice">
+    <div class="auth-icon">🔐</div>
+    <p>Connectez-vous avec Twitch pour accéder aux abonnements premium</p>
+  </div>
+
+  <!-- Trust Indicators -->
+  <div class="trust-section">
+    <h3>🛡️ Sécurité et Transparence</h3>
+    <div class="trust-grid">
+      <div class="trust-item">
+        <span class="trust-icon">🔒</span>
+        <h4>Paiements sécurisés</h4>
+        <p>Stripe & PayPal</p>
+      </div>
+      <div class="trust-item">
+        <span class="trust-icon">↩️</span>
+        <h4>Annulation facile</h4>
+        <p>À tout moment</p>
+      </div>
+      <div class="trust-item">
+        <span class="trust-icon">⚖️</span>
+        <h4>Système équitable</h4>
+        <p>Pas de pay-to-win</p>
+      </div>
+      <div class="trust-item">
+        <span class="trust-icon">🎮</span>
+        <h4>Contenu de qualité</h4>
+        <p>Plus de fun, pas d'avantage</p>
+      </div>
+    </div>
+  </div>
+</div>
