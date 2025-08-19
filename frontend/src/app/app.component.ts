@@ -24,6 +24,11 @@ export class AppComponent implements OnInit, OnDestroy {
   user: User | null = null;
   favoriteCount = 0;
 
+  // États des modals footer
+  showAboutModal = false;
+  showPrivacyModal = false;
+  showContactModal = false;
+
   private destroy$ = new Subject<void>();
 
   // Injection des services avec le nouveau système
@@ -116,18 +121,28 @@ export class AppComponent implements OnInit, OnDestroy {
 
   // Actions footer
   openAbout(): void {
-    // TODO: Implémenter modal À propos
-    console.log('À propos clicked');
+    this.showAboutModal = true;
   }
 
   openPrivacy(): void {
-    // TODO: Implémenter modal Confidentialité  
-    console.log('Confidentialité clicked');
+    this.showPrivacyModal = true;
   }
 
   openContact(): void {
-    // TODO: Implémenter modal Contact
-    console.log('Contact clicked');
+    this.showContactModal = true;
+  }
+
+  // Fermer les modals
+  closeAboutModal(): void {
+    this.showAboutModal = false;
+  }
+
+  closePrivacyModal(): void {
+    this.showPrivacyModal = false;
+  }
+
+  closeContactModal(): void {
+    this.showContactModal = false;
   }
 
   // Ouvrir le profil utilisateur

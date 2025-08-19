@@ -18,20 +18,71 @@ try {
 
 // Configuration des plans d'abonnement
 const SUBSCRIPTION_PLANS = {
+  free: {
+    id: 'free',
+    name: 'Gratuit',
+    price: 0,
+    currency: 'EUR',
+    interval: 'monthly',
+    description: 'Accès de base à Streamyscovery',
+    features: [
+      'Accès à tous les niveaux 1-200',
+      '6 quêtes quotidiennes',
+      '4 quêtes hebdomadaires', 
+      '3 quêtes mensuelles',
+      'Interface standard'
+    ],
+    highlighted: false
+  },
   premium: {
+    id: 'premium',
     name: 'Premium',
     price: 5,
-    features: ['xp_boost_5', 'extra_quests_2', 'premium_themes']
+    currency: 'EUR',
+    interval: 'monthly',
+    description: 'Améliorez votre expérience de découverte',
+    features: [
+      'Boost XP +5%',
+      '8 quêtes quotidiennes (+2)',
+      'Quêtes premium exclusives',
+      'Badge Premium exclusif',
+      'Thèmes cosmétiques'
+    ],
+    highlighted: false
   },
   vip: {
+    id: 'vip',
     name: 'VIP', 
     price: 9,
-    features: ['xp_boost_10', 'extra_quests_3', 'analytics_personal', 'vip_themes']
+    currency: 'EUR',
+    interval: 'monthly',
+    description: 'Expérience VIP avec analytics personnelles',
+    features: [
+      'Boost XP +10%',
+      '9 quêtes quotidiennes (+3)',
+      '5 quêtes hebdomadaires (+1)',
+      'Analytics personnelles',
+      'Thèmes VIP exclusifs'
+    ],
+    highlighted: true,
+    badge: 'POPULAIRE'
   },
   legendary: {
+    id: 'legendary',
     name: 'Légendaire',
     price: 15,
-    features: ['xp_boost_15', 'extra_quests_4', 'analytics_advanced', 'priority_support', 'legendary_themes']
+    currency: 'EUR',
+    interval: 'monthly',
+    description: 'L\'expérience ultime de Streamyscovery',
+    features: [
+      'Boost XP +15%',
+      '10 quêtes quotidiennes (+4)',
+      '6 quêtes hebdomadaires (+2)',
+      'Analytics avancées',
+      'Support prioritaire',
+      'Thèmes légendaires exclusifs'
+    ],
+    highlighted: false
   }
 };
 

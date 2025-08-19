@@ -1,5 +1,6 @@
 import { Component, OnInit, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 interface UserProfile {
@@ -522,7 +523,10 @@ export class UserProfileComponent implements OnInit {
 
   displayedBadges: Badge[] = [];
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
     this.displayedBadges = this.availableBadges;
@@ -599,7 +603,10 @@ export class UserProfileComponent implements OnInit {
   }
 
   upgradePremium() {
-    // TODO: Ouvrir la page d'upgrade premium
-    console.log('Upgrade vers Premium');
+    console.log('🚀 Redirection vers la page Premium');
+    // Fermer le modal de profil
+    this.closeProfile();
+    // Rediriger vers la page d'abonnement
+    this.router.navigate(['/subscription']);
   }
 }

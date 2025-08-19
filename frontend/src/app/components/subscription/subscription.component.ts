@@ -1,167 +1,165 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PaymentService, PaymentPlans, SubscriptionPlan } from '../../services/payment.service';
+import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
+
+interface SubscriptionPlan {
+  id: string;
+  name: string;
+  price: number;
+  currency: string;
+  interval: string;
+  description: string;
+  features: string[];
+  highlighted?: boolean;
+  badge?: string;
+}
+
+interface SubscriptionResponse {
+  success: boolean;
+  plans: Record<string, SubscriptionPlan>;
+}
 
 @Component({
   selector: 'app-subscription',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './subscription.component.html',
-  styleUrls: ['./subscription.component.scss']
+  styleUrl: './subscription.component.scss'
 })
 export class SubscriptionComponent implements OnInit {
-  plans: PaymentPlans | null = null;
-  isLoading = false;
+  plans: SubscriptionPlan[] = [];
+  loading = true;
   error: string | null = null;
-  isAuthenticated = false;
+  currentPlan = 'free';
 
-  // Plan actuellement sélectionné pour l'achat
-  selectedPlan: string | null = null;
-  isProcessingPayment = false;
+  private apiUrl = environment.apiUrl;
 
-  constructor(private paymentService: PaymentService) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router
+  ) {}
 
-  ngOnInit(): void {
-    this.checkAuthentication();
+  ngOnInit() {
     this.loadSubscriptionPlans();
+    this.loadCurrentUserPlan();
   }
 
   /**
-   * Vérifier si l'utilisateur est connecté
+   * Charger les plans d'abonnement depuis le backend
    */
-  checkAuthentication(): void {
-    this.isAuthenticated = this.paymentService.isUserAuthenticated();
+  private loadSubscriptionPlans() {
+    this.http.get<SubscriptionResponse>(`${this.apiUrl}/payments/plans`)
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.plans) {
+            this.plans = Object.values(response.plans);
+            console.log('✅ Plans d\'abonnement chargés:', this.plans);
+          } else {
+            this.error = 'Erreur lors du chargement des plans';
+          }
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('❌ Erreur chargement plans:', error);
+          this.error = 'Impossible de charger les plans d\'abonnement';
+          this.loading = false;
+        }
+      });
   }
 
   /**
-   * Charger les plans d'abonnement depuis l'API
+   * Charger le plan actuel de l'utilisateur
    */
-  loadSubscriptionPlans(): void {
-    this.isLoading = true;
-    this.error = null;
-
-    this.paymentService.getSubscriptionPlans().subscribe({
-      next: (plans) => {
-        this.plans = plans;
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Erreur lors du chargement des plans:', error);
-        this.error = 'Impossible de charger les plans d\'abonnement';
-        this.isLoading = false;
-      }
-    });
+  private loadCurrentUserPlan() {
+    // TODO: Récupérer depuis le service d'authentification
+    // Pour le moment, on utilise localStorage ou valeur par défaut
+    this.currentPlan = localStorage.getItem('userSubscriptionTier') || 'free';
   }
 
   /**
-   * Sélectionner un plan et lancer le processus de paiement
+   * Sélectionner un plan d'abonnement
    */
-  selectPlan(planType: string): void {
-    if (!this.isAuthenticated) {
-      this.paymentService.redirectToLogin();
+  selectPlan(planId: string) {
+    if (planId === 'free') {
+      // Plan gratuit - pas de paiement nécessaire
+      this.updateUserPlan('free');
       return;
     }
 
-    if (this.isProcessingPayment) {
-      return; // Éviter les clics multiples
-    }
-
-    this.selectedPlan = planType;
-    this.isProcessingPayment = true;
-    this.error = null;
-
-    this.paymentService.createCheckoutSession(planType).subscribe({
-      next: (response) => {
-        console.log('Réponse session checkout:', response);
-        
-        if (response.success) {
-          if (response.mock) {
-            // Mode développement - afficher un message
-            alert(`🎉 Mode développement\n\n${response.message}\n\nPlan: ${response.plan?.name}\nSession ID: ${response.session_id}`);
-          } else if (response.checkout_url) {
-            // Redirection vers Stripe Checkout
-            window.location.href = response.checkout_url;
-          }
+    // Plans payants - rediriger vers Stripe Checkout
+    console.log(`🔄 Sélection du plan: ${planId}`);
+    
+    this.http.post(`${this.apiUrl}/payments/create-checkout-session`, {
+      plan: planId,
+      userId: this.getCurrentUserId()
+    }).subscribe({
+      next: (response: any) => {
+        if (response.success && response.checkoutUrl) {
+          // Rediriger vers Stripe Checkout
+          window.location.href = response.checkoutUrl;
         } else {
-          this.error = response.message || 'Erreur lors de la création de la session';
+          this.error = 'Erreur lors de la création de la session de paiement';
         }
-        
-        this.isProcessingPayment = false;
-        this.selectedPlan = null;
       },
       error: (error) => {
-        console.error('Erreur création session:', error);
-        this.error = error.message || 'Erreur lors de la création de la session de paiement';
-        this.isProcessingPayment = false;
-        this.selectedPlan = null;
+        console.error('❌ Erreur création checkout:', error);
+        this.error = 'Impossible de créer la session de paiement';
       }
     });
   }
 
   /**
-   * Obtenir les fonctionnalités formatées d'un plan
+   * Mettre à jour le plan utilisateur
    */
-  getPlanFeatures(plan: SubscriptionPlan): string[] {
-    if (!plan.features) return [];
-    
-    return plan.features.map(feature => {
-      switch (feature) {
-        case 'xp_boost_5': return '🚀 Boost XP +5%';
-        case 'xp_boost_10': return '🚀 Boost XP +10%';
-        case 'xp_boost_15': return '🚀 Boost XP +15%';
-        case 'extra_quests_2': return '🎯 +2 quêtes quotidiennes';
-        case 'extra_quests_3': return '🎯 +3 quêtes quotidiennes';
-        case 'extra_quests_4': return '🎯 +4 quêtes quotidiennes';
-        case 'premium_themes': return '🎨 Thèmes Premium exclusifs';
-        case 'vip_themes': return '🎨 Thèmes VIP avancés';
-        case 'legendary_themes': return '🎨 Thèmes Légendaires';
-        case 'analytics_personal': return '📊 Analytics personnelles';
-        case 'analytics_advanced': return '📊 Analytics avancées';
-        case 'priority_support': return '🛟 Support prioritaire';
-        case 'exclusive_badges': return '🏅 Badges exclusifs';
-        default: return feature;
-      }
-    });
+  private updateUserPlan(tier: string) {
+    localStorage.setItem('userSubscriptionTier', tier);
+    this.currentPlan = tier;
+    console.log(`✅ Plan mis à jour: ${tier}`);
   }
 
   /**
-   * Obtenir la classe CSS pour un plan
+   * Récupérer l'ID utilisateur actuel
    */
-  getPlanClass(planType: string): string {
-    switch (planType) {
-      case 'premium': return 'plan-premium';
-      case 'vip': return 'plan-vip';
-      case 'legendary': return 'plan-legendary';
-      default: return 'plan-default';
+  private getCurrentUserId(): string {
+    // TODO: Récupérer depuis le service d'authentification
+    return localStorage.getItem('userId') || 'temp-user-1';
+  }
+
+  /**
+   * Vérifier si un plan est le plan actuel
+   */
+  isCurrentPlan(planId: string): boolean {
+    return this.currentPlan === planId;
+  }
+
+  /**
+   * Obtenir le libellé du bouton selon le plan
+   */
+  getButtonLabel(planId: string): string {
+    if (this.isCurrentPlan(planId)) {
+      return 'Plan actuel';
+    }
+    
+    switch (planId) {
+      case 'free':
+        return 'Gratuit';
+      case 'premium':
+        return 'Choisir Premium';
+      case 'vip':
+        return 'Choisir VIP';
+      case 'legendary':
+        return 'Choisir Légendaire';
+      default:
+        return 'Choisir ce plan';
     }
   }
 
   /**
-   * Vérifier si un plan est en cours de traitement
+   * Vérifier si le bouton doit être désactivé
    */
-  isPlanProcessing(planType: string): boolean {
-    return this.isProcessingPayment && this.selectedPlan === planType;
-  }
-
-  /**
-   * Obtenir le texte du bouton pour un plan
-   */
-  getButtonText(planType: string): string {
-    if (this.isPlanProcessing(planType)) {
-      return 'Traitement...';
-    }
-    
-    if (!this.isAuthenticated) {
-      return 'Se connecter pour s\'abonner';
-    }
-    
-    return 'Choisir ce plan';
-  }
-
-  /**
-   * Retry pour recharger les plans en cas d'erreur
-   */
-  retryLoadPlans(): void {
-    this.loadSubscriptionPlans();
+  isButtonDisabled(planId: string): boolean {
+    return this.isCurrentPlan(planId) || this.loading;
   }
 }

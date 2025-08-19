@@ -1,86 +1,67 @@
-// Variables harmonisées avec le design de l'app
-:root {
-  --premium-gold: #ffd700;
-  --premium-gold-light: #ffed4a;
-  --vip-purple: #8b5cf6;
-  --legendary-cyan: #06b6d4;
-  
-  --glass-bg: rgba(255, 255, 255, 0.15);
-  --glass-border: rgba(255, 255, 255, 0.35);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  
-  --text-on-dark: #ffffff;
-  --text-muted-dark: rgba(255, 255, 255, 0.7);
-  --text-accent-dark: rgba(255, 255, 255, 0.9);
-}
+// ===== SUBSCRIPTION COMPONENT STYLES =====
+// Style glassmorphism moderne pour Streamyscovery Premium
 
 .subscription-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 2rem;
   min-height: 100vh;
-  background: transparent;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem 1rem;
+  
+  // Background overlay pattern
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+  }
 }
 
-.header-section {
+// ===== HEADER SECTION =====
+.subscription-header {
   text-align: center;
-  margin-bottom: 4rem;
+  margin-bottom: 3rem;
   
-  .main-title {
-    font-size: 3.5rem;
+  .title {
+    font-size: 3rem;
     font-weight: 800;
-    color: var(--text-on-dark);
+    color: white;
     margin-bottom: 1rem;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     
     @media (max-width: 768px) {
-      font-size: 2.5rem;
+      font-size: 2.2rem;
     }
   }
   
   .subtitle {
-    font-size: 1.3rem;
-    color: var(--text-muted-dark);
-    margin-bottom: 2rem;
-    font-weight: 300;
-  }
-  
-  .free-guarantee {
-    display: inline-flex;
-    align-items: center;
-    gap: 1rem;
-    background: var(--glass-bg);
-    backdrop-filter: blur(10px);
-    padding: 1rem 2rem;
-    border-radius: 25px;
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
-    
-    .guarantee-badge {
-      font-weight: 600;
-      color: #4ade80;
-    }
-    
-    .guarantee-text {
-      color: var(--text-accent-dark);
-      font-size: 0.95rem;
-    }
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.9);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
   }
 }
 
+// ===== LOADING & ERROR STATES =====
 .loading-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 300px;
-  color: var(--text-muted-dark);
+  padding: 4rem 2rem;
+  color: white;
   
-  .spinner {
+  .loading-spinner {
     width: 50px;
     height: 50px;
-    border: 3px solid rgba(255, 255, 255, 0.2);
-    border-top: 3px solid var(--premium-gold);
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid white;
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-bottom: 1rem;
@@ -88,430 +69,404 @@
 }
 
 .error-container {
-  text-align: center;
-  padding: 3rem;
-  background: var(--glass-bg);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
   
-  .error-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-  }
-  
-  h3 {
-    color: #f87171;
-    margin-bottom: 1rem;
-  }
-  
-  p {
-    color: var(--text-muted-dark);
-  }
-  
-  .retry-button {
-    background: var(--premium-gold);
-    color: #000;
-    border: none;
-    padding: 0.8rem 1.5rem;
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.2s;
+  .error-message {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 107, 107, 0.5);
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    color: white;
     
-    &:hover {
-      background: var(--premium-gold-light);
-      transform: translateY(-2px);
+    .error-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+    
+    .retry-button {
+      margin-top: 1rem;
+      padding: 0.75rem 1.5rem;
+      background: rgba(255, 107, 107, 0.2);
+      border: 2px solid rgba(255, 107, 107, 0.5);
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        background: rgba(255, 107, 107, 0.3);
+        transform: translateY(-2px);
+      }
     }
   }
 }
 
+// ===== PLANS GRID =====
 .plans-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 2rem;
-  margin-bottom: 4rem;
-  align-items: start;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  
+  // Grand écran : 4 plans en ligne
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  // Écran moyen : 2x2
+  @media (min-width: 768px) and (max-width: 1199px) {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 800px;
+  }
+  
+  // Mobile : 1 colonne
+  @media (max-width: 767px) {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
 }
 
+// ===== PLAN CARDS =====
 .plan-card {
-  background: var(--glass-bg);
+  position: relative;
+  background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(15px);
   border-radius: 20px;
   padding: 2rem;
-  border: 2px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
-  transition: all 0.3s ease;
-  position: relative;
-  height: fit-content;
+  transition: all 0.4s ease;
+  border: 2px solid transparent;
   
+  // Effet hover global
   &:hover {
     transform: translateY(-8px);
-    box-shadow: 0 16px 50px rgba(0, 0, 0, 0.3);
-    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
   }
   
-  &.plan-free {
-    border-color: rgba(156, 163, 175, 0.7);
-    background: rgba(156, 163, 175, 0.08);
+  // Plan actuel
+  &.current-plan {
+    border-color: rgba(46, 204, 113, 0.8);
+    box-shadow: 0 0 30px rgba(46, 204, 113, 0.4);
     
-    &:hover {
-      border-color: rgba(156, 163, 175, 0.9);
-    }
-    
-    .plan-button {
-      background: rgba(156, 163, 175, 0.8);
-      color: var(--text-on-dark);
-      cursor: not-allowed;
-    }
-  }
-  
-  &.plan-premium {
-    border-color: rgba(255, 215, 0, 0.7);
-    background: rgba(255, 215, 0, 0.08);
-    
-    &:hover {
-      border-color: rgba(255, 215, 0, 1);
-      box-shadow: 0 16px 50px rgba(255, 215, 0, 0.2);
-    }
-  }
-  
-  &.plan-vip {
-    border-color: rgba(139, 92, 246, 0.9);
-    background: rgba(139, 92, 246, 0.12);
-    box-shadow: 0 8px 32px rgba(139, 92, 246, 0.15);
-    
-    &:hover {
-      border-color: rgba(139, 92, 246, 1);
-      box-shadow: 0 16px 50px rgba(139, 92, 246, 0.3);
-    }
-    
-    .popular-badge {
+    &::after {
+      content: '';
       position: absolute;
-      top: -12px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: linear-gradient(45deg, #f59e0b, #d97706);
-      color: white;
-      padding: 0.5rem 1.2rem;
+      inset: 0;
       border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
-    }
-  }
-  
-  &.plan-legendary {
-    border-color: rgba(6, 182, 212, 0.9);
-    background: rgba(6, 182, 212, 0.12);
-    box-shadow: 0 8px 32px rgba(6, 182, 212, 0.15);
-    
-    &:hover {
-      border-color: rgba(6, 182, 212, 1);
-      box-shadow: 0 16px 50px rgba(6, 182, 212, 0.3);
+      padding: 2px;
+      background: linear-gradient(45deg, #2ecc71, #27ae60);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask-composite: exclude;
     }
   }
 }
 
+// ===== STYLES SPÉCIFIQUES PAR PLAN =====
+.plan-free {
+  border-color: rgba(149, 165, 166, 0.6);
+  
+  &:hover {
+    border-color: rgba(149, 165, 166, 0.9);
+    box-shadow: 0 15px 35px rgba(149, 165, 166, 0.3);
+  }
+}
+
+.plan-premium {
+  border-color: rgba(52, 152, 219, 0.8);
+  
+  &:hover {
+    border-color: rgba(52, 152, 219, 1);
+    box-shadow: 0 15px 35px rgba(52, 152, 219, 0.4);
+  }
+}
+
+.plan-vip {
+  border-color: rgba(155, 89, 182, 0.8);
+  
+  &:hover {
+    border-color: rgba(155, 89, 182, 1);
+    box-shadow: 0 15px 35px rgba(155, 89, 182, 0.4);
+  }
+}
+
+.plan-legendary {
+  border-color: rgba(241, 196, 15, 0.9);
+  
+  &:hover {
+    border-color: rgba(241, 196, 15, 1);
+    box-shadow: 0 15px 35px rgba(241, 196, 15, 0.5);
+  }
+  
+  // Effet spécial pour le plan légendaire
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 22px;
+    background: linear-gradient(45deg, #f1c40f, #f39c12, #e74c3c, #9b59b6);
+    background-size: 400% 400%;
+    animation: legendaryGlow 3s ease infinite;
+    z-index: -1;
+    opacity: 0.7;
+  }
+}
+
+// ===== BADGES =====
+.plan-badge {
+  position: absolute;
+  top: -10px;
+  right: 20px;
+  background: linear-gradient(45deg, #e74c3c, #c0392b);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+}
+
+.current-badge {
+  position: absolute;
+  top: -10px;
+  left: 20px;
+  background: linear-gradient(45deg, #2ecc71, #27ae60);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+}
+
+// ===== PLAN CONTENT =====
 .plan-header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   
   .plan-name {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     font-weight: 700;
+    color: white;
     margin-bottom: 1rem;
-    color: var(--text-on-dark);
   }
   
   .plan-price {
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: baseline;
-    justify-content: center;
-    gap: 0.25rem;
+    margin-bottom: 1rem;
     
-    .price-amount {
-      font-size: 3rem;
-      font-weight: 800;
-      color: var(--text-on-dark);
+    .price-free {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #2ecc71;
     }
     
-    .price-period {
-      font-size: 1.2rem;
-      color: var(--text-muted-dark);
-      font-weight: 300;
+    .price-amount {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: white;
+      
+      small {
+        font-size: 1rem;
+        color: rgba(255, 255, 255, 0.7);
+        font-weight: 400;
+      }
     }
   }
   
-  .plan-savings {
-    color: #4ade80;
-    font-weight: 600;
-    font-size: 0.85rem;
-    background: rgba(74, 222, 128, 0.2);
-    padding: 0.4rem 1rem;
-    border-radius: 15px;
-    display: inline-block;
-    border: 1px solid rgba(74, 222, 128, 0.3);
+  .plan-description {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.5;
+    font-size: 0.95rem;
   }
 }
 
 .plan-features {
-  margin-bottom: 2.5rem;
-  
-  h4 {
-    color: var(--text-accent-dark);
-    margin-bottom: 1.5rem;
-    font-weight: 600;
-    font-size: 1rem;
-  }
+  margin-bottom: 2rem;
   
   ul {
     list-style: none;
     padding: 0;
+    margin: 0;
+  }
+  
+  .feature-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    color: rgba(255, 255, 255, 0.9);
     
-    li {
-      padding: 0.75rem 0;
-      color: var(--text-muted-dark);
-      font-size: 0.95rem;
-      position: relative;
-      padding-left: 2rem;
-      line-height: 1.4;
-      
-      &:before {
-        content: '✨';
-        position: absolute;
-        left: 0;
-        top: 0.75rem;
-        font-size: 0.8rem;
-      }
+    .feature-icon {
+      color: #2ecc71;
+      font-weight: bold;
+      margin-right: 0.75rem;
+      font-size: 1.1rem;
     }
   }
 }
 
+// ===== BUTTONS =====
 .plan-action {
   margin-top: auto;
+}
+
+.plan-button {
+  width: 100%;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   
-  .plan-button {
-    width: 100%;
-    padding: 1rem 1.5rem;
-    border: none;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    
-    &:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-    
-    &.current-plan {
-      background: rgba(156, 163, 175, 0.8);
-      color: var(--text-on-dark);
-    }
-    
-    &.plan-button-premium {
-      background: var(--premium-gold);
-      color: #000;
-      
-      &:hover:not(:disabled) {
-        background: var(--premium-gold-light);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
-      }
-    }
-    
-    &.plan-button-vip {
-      background: var(--vip-purple);
-      color: white;
-      
-      &:hover:not(:disabled) {
-        background: #7c3aed;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
-      }
-    }
-    
-    &.plan-button-legendary {
-      background: var(--legendary-cyan);
-      color: white;
-      
-      &:hover:not(:disabled) {
-        background: #0891b2;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
-      }
-    }
-    
-    .processing {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-    }
-    
-    .spinner-small {
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-top: 2px solid white;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  
+  &:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
   }
 }
 
-.auth-notice {
-  text-align: center;
-  background: var(--glass-bg);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(249, 115, 22, 0.3);
-  border-radius: 15px;
-  padding: 2rem;
-  margin-bottom: 3rem;
+.button-current {
+  background: rgba(46, 204, 113, 0.2);
+  color: #2ecc71;
+  border: 2px solid rgba(46, 204, 113, 0.5);
+}
+
+.button-free {
+  background: rgba(149, 165, 166, 0.2);
+  color: white;
+  border: 2px solid rgba(149, 165, 166, 0.5);
   
-  .auth-icon {
-    font-size: 2.5rem;
+  &:hover:not(:disabled) {
+    background: rgba(149, 165, 166, 0.3);
+    border-color: rgba(149, 165, 166, 0.8);
+  }
+}
+
+.button-premium {
+  background: linear-gradient(45deg, #3498db, #2980b9);
+  color: white;
+  border: none;
+  
+  &:hover:not(:disabled) {
+    background: linear-gradient(45deg, #2980b9, #1f619e);
+  }
+}
+
+.button-vip {
+  background: linear-gradient(45deg, #9b59b6, #8e44ad);
+  color: white;
+  border: none;
+  
+  &:hover:not(:disabled) {
+    background: linear-gradient(45deg, #8e44ad, #7d3c98);
+  }
+}
+
+.button-legendary {
+  background: linear-gradient(45deg, #f1c40f, #f39c12);
+  color: #2c3e50;
+  border: none;
+  font-weight: 700;
+  
+  &:hover:not(:disabled) {
+    background: linear-gradient(45deg, #f39c12, #e67e22);
+  }
+}
+
+// ===== FOOTER =====
+.subscription-footer {
+  text-align: center;
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  
+  .footer-text {
+    color: rgba(255, 255, 255, 0.8);
     margin-bottom: 1rem;
+    font-size: 0.9rem;
   }
   
-  p {
-    color: var(--text-accent-dark);
-    margin: 0;
-    font-weight: 500;
+  .footer-note {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.8rem;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.5;
   }
 }
 
-.trust-section {
-  text-align: center;
-  
-  h3 {
-    color: var(--text-on-dark);
-    margin-bottom: 2.5rem;
-    font-weight: 600;
-    font-size: 1.5rem;
-  }
-  
-  .trust-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
-  }
-  
-  .trust-item {
-    background: var(--glass-bg);
-    backdrop-filter: blur(10px);
-    padding: 2rem;
-    border-radius: 15px;
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
-    transition: transform 0.2s;
-    
-    &:hover {
-      transform: translateY(-4px);
-    }
-    
-    .trust-icon {
-      font-size: 3rem;
-      display: block;
-      margin-bottom: 1rem;
-    }
-    
-    h4 {
-      color: var(--text-accent-dark);
-      margin-bottom: 0.5rem;
-      font-weight: 600;
-    }
-    
-    p {
-      color: var(--text-muted-dark);
-      margin: 0;
-      font-size: 0.9rem;
-    }
-  }
-}
-
+// ===== ANIMATIONS =====
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
-@keyframes sparkle {
+@keyframes legendaryGlow {
   0%, 100% { 
-    transform: scale(1) rotate(0deg);
-    opacity: 1;
+    background-position: 0% 50%; 
+    opacity: 0.7;
   }
   50% { 
-    transform: scale(1.1) rotate(180deg);
-    opacity: 0.8;
+    background-position: 100% 50%; 
+    opacity: 1;
   }
 }
 
-@media (max-width: 1024px) {
-  .subscription-container {
-    padding: 1.5rem;
-  }
-  
-  .plans-grid {
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-  }
-}
-
+// ===== RESPONSIVE DESIGN =====
 @media (max-width: 768px) {
   .subscription-container {
-    padding: 1rem;
+    padding: 1rem 0.5rem;
   }
   
-  .header-section {
-    margin-bottom: 3rem;
+  .subscription-header {
+    margin-bottom: 2rem;
     
-    .main-title {
-      font-size: 2.5rem;
+    .title {
+      font-size: 2rem;
     }
     
     .subtitle {
-      font-size: 1.1rem;
+      font-size: 1rem;
+      padding: 0 1rem;
     }
-  }
-  
-  .plans-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
   }
   
   .plan-card {
     padding: 1.5rem;
   }
   
-  .trust-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .plans-grid {
     gap: 1rem;
-  }
-  
-  .free-guarantee {
-    flex-direction: column;
-    text-align: center;
-    gap: 0.5rem;
-    padding: 0.8rem 1.5rem;
   }
 }
 
 @media (max-width: 480px) {
-  .trust-grid {
-    grid-template-columns: 1fr;
+  .subscription-header .title {
+    font-size: 1.8rem;
   }
   
-  .plan-header .plan-price {
-    .price-amount {
-      font-size: 2.5rem;
-    }
+  .plan-card {
+    padding: 1rem;
+  }
+  
+  .plan-header .plan-name {
+    font-size: 1.3rem;
+  }
+  
+  .plan-header .price-amount {
+    font-size: 1.8rem;
   }
 }
