@@ -23,7 +23,7 @@ const SUBSCRIPTION_PLANS = {
     name: 'Gratuit',
     price: 0,
     currency: 'EUR',
-    interval: 'monthly',
+    interval: 'month',
     description: 'Accès de base à Streamyscovery',
     features: [
       'Accès à tous les niveaux 1-200',
@@ -39,7 +39,7 @@ const SUBSCRIPTION_PLANS = {
     name: 'Premium',
     price: 5,
     currency: 'EUR',
-    interval: 'monthly',
+    interval: 'month',
     description: 'Améliorez votre expérience de découverte',
     features: [
       'Boost XP +5%',
@@ -55,7 +55,7 @@ const SUBSCRIPTION_PLANS = {
     name: 'VIP', 
     price: 9,
     currency: 'EUR',
-    interval: 'monthly',
+    interval: 'month',
     description: 'Expérience VIP avec analytics personnelles',
     features: [
       'Boost XP +10%',
@@ -72,7 +72,7 @@ const SUBSCRIPTION_PLANS = {
     name: 'Légendaire',
     price: 15,
     currency: 'EUR',
-    interval: 'monthly',
+    interval: 'month',
     description: 'L\'expérience ultime de Streamyscovery',
     features: [
       'Boost XP +15%',
@@ -150,47 +150,336 @@ router.get('/test', (req, res) => {
  * Créer une session de checkout Stripe (mock pour le moment)
  * POST /api/payments/create-checkout-session
  */
-router.post('/create-checkout-session', authenticateToken, async (req, res) => {
+router.post('/create-checkout-session', async (req, res) => {
   try {
-    const { plan } = req.body;
-    const userId = req.user.userId;
+    const { planId } = req.body;
+    // TODO: Récupérer depuis l'authentification réelle
+    const userId = req.body.userId || 'temp-user-1';
+
+    console.log(`🔄 Création session Stripe pour plan: ${planId}, user: ${userId}`);
 
     // Validation du plan
-    if (!SUBSCRIPTION_PLANS[plan]) {
+    if (!SUBSCRIPTION_PLANS[planId]) {
       return res.status(400).json({ 
         success: false, 
         message: 'Plan d\'abonnement invalide' 
       });
     }
 
-    const selectedPlan = SUBSCRIPTION_PLANS[plan];
+    const selectedPlan = SUBSCRIPTION_PLANS[planId];
 
     if (!stripe) {
-      // Mode mock pour le développement
+      // Mode mock pour le développement si Stripe pas configuré
       return res.json({
         success: true,
         mock: true,
         message: 'Session créée en mode développement',
         plan: selectedPlan,
         user_id: userId,
-        session_id: 'mock_session_' + Date.now()
+        sessionId: 'mock_session_' + Date.now()
       });
     }
 
-    // TODO: Implémentation Stripe réelle quand les clés seront configurées
+    // Création de la vraie session Stripe
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'eur',
+            product_data: {
+              name: `Streamyscovery ${selectedPlan.name}`,
+              description: selectedPlan.description,
+              images: ['https://streamyscovery.com/logo.png'], // Remplacer par votre vraie URL
+            },
+            unit_amount: selectedPlan.price * 100, // Prix en centimes
+            recurring: {
+              interval: selectedPlan.interval,
+            },
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription',
+      success_url: `${process.env.FRONTEND_URL || 'http://localhost:4200'}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:4200'}/subscription/cancel`,
+      client_reference_id: userId,
+      metadata: {
+        userId: userId,
+        planId: planId
+      }
+    });
+
+    console.log('✅ Session Stripe créée:', session.id);
+
     res.json({
       success: true,
-      message: 'Stripe configuré mais session non implémentée',
+      sessionId: session.id,
+      url: session.url,
       plan: selectedPlan
     });
 
   } catch (error) {
-    console.error('❌ Erreur création session:', error);
+    console.error('❌ Erreur création session Stripe:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Erreur lors de la création de la session de paiement' 
+      message: 'Erreur lors de la création de la session de paiement',
+      error: error.message
     });
   }
 });
+
+/**
+ * Webhook Stripe pour traiter les événements de paiement
+ * POST /api/payments/webhook
+ */
+router.post('/webhook', express.raw({type: 'application/json'}), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  let event;
+
+  try {
+    // Vérifier la signature du webhook
+    if (!stripe) {
+      console.log('⚠️ Stripe non initialisé - webhook ignoré');
+      return res.status(400).send('Stripe non configuré');
+    }
+
+    if (!endpointSecret || endpointSecret === 'whsec_placeholder_secret') {
+      console.log('⚠️ Webhook secret non configuré - validation ignorée');
+      // En mode développement, on peut traiter l'événement sans validation
+      event = JSON.parse(req.body);
+    } else {
+      // Validation de la signature en production
+      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+    }
+
+    console.log(`🔔 Webhook reçu: ${event.type}`);
+
+    // Traiter les différents types d'événements
+    switch (event.type) {
+      case 'checkout.session.completed':
+        await handleCheckoutSessionCompleted(event.data.object);
+        break;
+      
+      case 'customer.subscription.created':
+        await handleSubscriptionCreated(event.data.object);
+        break;
+      
+      case 'customer.subscription.updated':
+        await handleSubscriptionUpdated(event.data.object);
+        break;
+      
+      case 'customer.subscription.deleted':
+        await handleSubscriptionDeleted(event.data.object);
+        break;
+      
+      case 'invoice.payment_succeeded':
+        await handlePaymentSucceeded(event.data.object);
+        break;
+      
+      case 'invoice.payment_failed':
+        await handlePaymentFailed(event.data.object);
+        break;
+      
+      default:
+        console.log(`⚠️ Événement non géré: ${event.type}`);
+    }
+
+    res.json({received: true});
+
+  } catch (err) {
+    console.error('❌ Erreur webhook:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+});
+
+/**
+ * Gérer la completion d'une session de checkout
+ */
+async function handleCheckoutSessionCompleted(session) {
+  try {
+    console.log('✅ Checkout session completed:', session.id);
+    
+    const userId = session.client_reference_id || session.metadata?.userId;
+    const planId = session.metadata?.planId;
+    
+    if (!userId) {
+      console.error('❌ User ID manquant dans les métadonnées');
+      return;
+    }
+
+    // Récupérer les détails de la subscription
+    if (session.subscription) {
+      const subscription = await stripe.subscriptions.retrieve(session.subscription);
+      await activateUserSubscription(userId, planId, subscription);
+    }
+
+  } catch (error) {
+    console.error('❌ Erreur checkout session completed:', error);
+  }
+}
+
+/**
+ * Gérer la création d'un abonnement
+ */
+async function handleSubscriptionCreated(subscription) {
+  try {
+    console.log('✅ Subscription created:', subscription.id);
+    // Logique de création d'abonnement
+  } catch (error) {
+    console.error('❌ Erreur subscription created:', error);
+  }
+}
+
+/**
+ * Gérer la mise à jour d'un abonnement
+ */
+async function handleSubscriptionUpdated(subscription) {
+  try {
+    console.log('🔄 Subscription updated:', subscription.id);
+    // Logique de mise à jour d'abonnement
+  } catch (error) {
+    console.error('❌ Erreur subscription updated:', error);
+  }
+}
+
+/**
+ * Gérer la suppression d'un abonnement
+ */
+async function handleSubscriptionDeleted(subscription) {
+  try {
+    console.log('❌ Subscription deleted:', subscription.id);
+    // Logique de suppression d'abonnement
+    const userId = subscription.metadata?.userId;
+    if (userId) {
+      await deactivateUserSubscription(userId);
+    }
+  } catch (error) {
+    console.error('❌ Erreur subscription deleted:', error);
+  }
+}
+
+/**
+ * Gérer un paiement réussi
+ */
+async function handlePaymentSucceeded(invoice) {
+  try {
+    console.log('💰 Payment succeeded:', invoice.id);
+    // Logique de paiement réussi
+  } catch (error) {
+    console.error('❌ Erreur payment succeeded:', error);
+  }
+}
+
+/**
+ * Gérer un paiement échoué
+ */
+async function handlePaymentFailed(invoice) {
+  try {
+    console.log('💸 Payment failed:', invoice.id);
+    // Logique de paiement échoué
+  } catch (error) {
+    console.error('❌ Erreur payment failed:', error);
+  }
+}
+
+/**
+ * Activer l'abonnement d'un utilisateur dans la base de données
+ */
+async function activateUserSubscription(userId, planId, subscription) {
+  try {
+    console.log(`🎯 Activation abonnement pour user ${userId}, plan ${planId}`);
+    
+    // Insérer ou mettre à jour dans la table subscriptions
+    const query = `
+      INSERT INTO subscriptions (
+        user_id, 
+        plan_id, 
+        stripe_subscription_id, 
+        stripe_customer_id,
+        status, 
+        current_period_start, 
+        current_period_end,
+        created_at,
+        updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+      ON DUPLICATE KEY UPDATE
+        plan_id = VALUES(plan_id),
+        stripe_subscription_id = VALUES(stripe_subscription_id),
+        stripe_customer_id = VALUES(stripe_customer_id),
+        status = VALUES(status),
+        current_period_start = VALUES(current_period_start),
+        current_period_end = VALUES(current_period_end),
+        updated_at = NOW()
+    `;
+    
+    const values = [
+      userId,
+      planId,
+      subscription.id,
+      subscription.customer,
+      subscription.status,
+      new Date(subscription.current_period_start * 1000),
+      new Date(subscription.current_period_end * 1000)
+    ];
+    
+    await db.execute(query, values);
+    
+    // Mettre à jour le tier de l'utilisateur
+    await updateUserTier(userId, planId);
+    
+    console.log(`✅ Abonnement activé pour user ${userId}`);
+    
+  } catch (error) {
+    console.error('❌ Erreur activation abonnement:', error);
+  }
+}
+
+/**
+ * Désactiver l'abonnement d'un utilisateur
+ */
+async function deactivateUserSubscription(userId) {
+  try {
+    console.log(`🚫 Désactivation abonnement pour user ${userId}`);
+    
+    // Mettre à jour le statut dans la table subscriptions
+    const query = `
+      UPDATE subscriptions 
+      SET status = 'canceled', updated_at = NOW() 
+      WHERE user_id = ?
+    `;
+    
+    await db.execute(query, [userId]);
+    
+    // Remettre l'utilisateur en tier gratuit
+    await updateUserTier(userId, 'free');
+    
+    console.log(`✅ Abonnement désactivé pour user ${userId}`);
+    
+  } catch (error) {
+    console.error('❌ Erreur désactivation abonnement:', error);
+  }
+}
+
+/**
+ * Mettre à jour le tier d'un utilisateur
+ */
+async function updateUserTier(userId, tier) {
+  try {
+    const query = `
+      UPDATE users 
+      SET subscription_tier = ?, updated_at = NOW() 
+      WHERE user_id = ?
+    `;
+    
+    await db.execute(query, [tier, userId]);
+    console.log(`✅ Tier mis à jour: ${userId} -> ${tier}`);
+    
+  } catch (error) {
+    console.error('❌ Erreur mise à jour tier:', error);
+  }
+}
 
 module.exports = router;

@@ -4,6 +4,13 @@ npm-debug.log*
 
 # Environment variables
 .env
+backend/.env
+frontend/.env
+*.env
+
+# Configuration files with secrets
+**/environment.ts
+**/environment.prod.ts
 
 # Logs
 logs

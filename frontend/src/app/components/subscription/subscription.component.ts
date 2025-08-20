@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { StripeService } from '../../services/stripe.service';
 
 interface SubscriptionPlan {
   id: string;
@@ -38,7 +39,8 @@ export class SubscriptionComponent implements OnInit {
 
   constructor(
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private stripeService: StripeService
   ) {}
 
   ngOnInit() {
@@ -81,33 +83,35 @@ export class SubscriptionComponent implements OnInit {
   /**
    * Sélectionner un plan d'abonnement
    */
-  selectPlan(planId: string) {
+  async selectPlan(planId: string) {
     if (planId === 'free') {
       // Plan gratuit - pas de paiement nécessaire
       this.updateUserPlan('free');
       return;
     }
 
-    // Plans payants - rediriger vers Stripe Checkout
+    // Plans payants - utiliser Stripe
     console.log(`🔄 Sélection du plan: ${planId}`);
+    this.loading = true;
+    this.error = null;
     
-    this.http.post(`${this.apiUrl}/payments/create-checkout-session`, {
-      plan: planId,
-      userId: this.getCurrentUserId()
-    }).subscribe({
-      next: (response: any) => {
-        if (response.success && response.checkoutUrl) {
-          // Rediriger vers Stripe Checkout
-          window.location.href = response.checkoutUrl;
-        } else {
-          this.error = 'Erreur lors de la création de la session de paiement';
-        }
-      },
-      error: (error) => {
-        console.error('❌ Erreur création checkout:', error);
-        this.error = 'Impossible de créer la session de paiement';
+    try {
+      // Créer la session Stripe
+      const session = await this.stripeService.createCheckoutSession(planId, this.getCurrentUserId()).toPromise();
+      
+      if (session?.sessionId) {
+        console.log('✅ Session Stripe créée:', session.sessionId);
+        
+        // Rediriger vers Stripe Checkout
+        await this.stripeService.redirectToCheckout(session.sessionId);
+      } else {
+        throw new Error('Session ID manquant dans la réponse');
       }
-    });
+    } catch (error) {
+      console.error('❌ Erreur Stripe checkout:', error);
+      this.error = 'Impossible de créer la session de paiement. Veuillez réessayer.';
+      this.loading = false;
+    }
   }
 
   /**
