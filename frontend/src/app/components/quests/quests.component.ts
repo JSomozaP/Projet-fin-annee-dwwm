@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { UserProgressionService } from '../../services/user-progression.service';
+import { PremiumService, UserTier } from '../../services/premium.service';
 
 interface Quest {
   id: string;
@@ -50,7 +51,10 @@ export class QuestsComponent implements OnInit, OnDestroy {
   private readonly QUEST_RESET_HOUR = 6; // Reset à 6h du matin
   private subscriptions = new Subscription();
 
-  constructor(private userProgressionService: UserProgressionService) {}
+  constructor(
+    private userProgressionService: UserProgressionService,
+    private premiumService: PremiumService
+  ) {}
 
   ngOnInit() {
     this.initializeQuestPool();
@@ -71,6 +75,16 @@ export class QuestsComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.userProgressionService.getLocalStats().subscribe(stats => {
         this.updateQuestsFromStats(stats);
+      })
+    );
+
+    // S'abonner aux changements de tier premium pour recharger les quêtes
+    this.subscriptions.add(
+      this.premiumService.currentTier$.subscribe(tier => {
+        console.log('🎯 Tier premium changé:', tier);
+        // Régénérer les quêtes immédiatement avec les nouveaux nombres basés sur le tier
+        console.log('🔄 Régénération des quêtes avec le nouveau tier');
+        this.generateAndSaveQuests();
       })
     );
   }
@@ -374,15 +388,17 @@ export class QuestsComponent implements OnInit, OnDestroy {
   }
 
   private generateRandomQuests() {
-    // Générer des quêtes aléatoires pour chaque utilisateur
-    // Quotidiennes: 4 quêtes parmi 30 possibles
-    const dailyQuests = this.getRandomQuests(this.questPool.daily, 4);
+    // Utiliser les comptes de quêtes basés sur le tier premium actuel
+    const dailyCount = this.premiumService.getDailyQuestsCount();
+    const weeklyCount = this.premiumService.getWeeklyQuestsCount();
+    const monthlyCount = this.premiumService.getMonthlyQuestsCount();
     
-    // Hebdomadaires: 3 quêtes parmi 19 possibles  
-    const weeklyQuests = this.getRandomQuests(this.questPool.weekly, 3);
+    console.log(`🎯 Génération de quêtes - Quotidiennes: ${dailyCount}, Hebdomadaires: ${weeklyCount}, Mensuelles: ${monthlyCount}`);
     
-    // Mensuelles: 2 quêtes parmi 14 possibles
-    const monthlyQuests = this.getRandomQuests(this.questPool.monthly, 2);
+    // Générer des quêtes aléatoires selon le tier premium
+    const dailyQuests = this.getRandomQuests(this.questPool.daily, dailyCount);
+    const weeklyQuests = this.getRandomQuests(this.questPool.weekly, weeklyCount);
+    const monthlyQuests = this.getRandomQuests(this.questPool.monthly, monthlyCount);
     
     // Combiner toutes les quêtes
     this.quests = [...dailyQuests, ...weeklyQuests, ...monthlyQuests];
@@ -532,5 +548,43 @@ export class QuestsComponent implements OnInit, OnDestroy {
       default:
         return `${quest.title} - ${target} objectif${target > 1 ? 's' : ''} atteint${target > 1 ? 's' : ''} !`;
     }
+  }
+
+  /**
+   * Calcule la récompense d'une quête avec le boost XP appliqué
+   */
+  getQuestRewardWithBoost(quest: Quest): string {
+    const baseReward = quest.reward;
+    const xpMatch = baseReward.match(/(\d+)\s*XP/i);
+    
+    if (xpMatch) {
+      const baseXP = parseInt(xpMatch[1]);
+      const currentTier = this.premiumService.getCurrentTier();
+      const boostedXP = Math.floor(baseXP * (1 + currentTier.xpBoost / 100));
+      
+      if (currentTier.xpBoost > 0) {
+        return `${boostedXP} XP (+${currentTier.xpBoost}% 🚀)`;
+      } else {
+        return baseReward;
+      }
+    }
+    
+    return baseReward;
+  }
+
+  /**
+   * Obtenir le timestamp de la dernière génération de quêtes
+   */
+  private getLastQuestTimestamp(): string | null {
+    try {
+      const storedData = localStorage.getItem(this.STORAGE_KEY);
+      if (storedData) {
+        const questData = JSON.parse(storedData);
+        return questData.timestamp;
+      }
+    } catch (error) {
+      console.error('Erreur lors de la lecture du timestamp:', error);
+    }
+    return null;
   }
 }

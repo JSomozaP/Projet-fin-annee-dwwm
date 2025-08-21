@@ -29,7 +29,7 @@
             </div>
             <span class="progress-text">{{ quest.progress }}/{{ quest.target }}</span>
           </div>
-          <div class="quest-reward">{{ quest.reward }}</div>
+          <div class="quest-reward">{{ getQuestRewardWithBoost(quest) }}</div>
         </div>
       </div>
     </section>
@@ -50,7 +50,7 @@
             </div>
             <span class="progress-text">{{ quest.progress }}/{{ quest.target }}</span>
           </div>
-          <div class="quest-reward">{{ quest.reward }}</div>
+          <div class="quest-reward">{{ getQuestRewardWithBoost(quest) }}</div>
         </div>
       </div>
     </section>
@@ -71,7 +71,7 @@
             </div>
             <span class="progress-text">{{ quest.progress }}/{{ quest.target }}</span>
           </div>
-          <div class="quest-reward">{{ quest.reward }}</div>
+          <div class="quest-reward">{{ getQuestRewardWithBoost(quest) }}</div>
         </div>
       </div>
     </section>

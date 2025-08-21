@@ -1,7 +1,9 @@
-import { Component, OnInit, EventEmitter, Output } from '@angular/core';
+import { Component, OnInit, EventEmitter, Output, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+import { PremiumService, UserTier } from '../../services/premium.service';
 
 interface UserProfile {
   id: string;
@@ -16,7 +18,7 @@ interface UserProfile {
   currentTitle?: string;
   streamsDiscovered: number;
   favoritesAdded: number;
-  subscriptionTier: 'free' | 'premium' | 'vip';
+  subscriptionTier: 'free' | 'premium' | 'vip' | 'legendary';
 }
 
 interface Badge {
@@ -66,6 +68,9 @@ interface Badge {
             <div class="xp-fill" [style.width.%]="getXPPercentage()"></div>
           </div>
           <div class="total-xp">Total : {{ userProfile?.totalXP }} XP</div>
+          <div class="xp-boost" *ngIf="getXPBoostPercentage() > 0">
+            ⚡ Boost XP: +{{ getXPBoostPercentage() }}%
+          </div>
         </div>
 
         <!-- Statistiques -->
@@ -277,6 +282,18 @@ interface Badge {
       font-size: 0.8rem;
     }
 
+    .xp-boost {
+      text-align: center;
+      color: #ffd700;
+      font-size: 0.85rem;
+      font-weight: bold;
+      margin-top: 0.5rem;
+      background: rgba(255, 215, 0, 0.1);
+      padding: 0.3rem 0.8rem;
+      border-radius: 15px;
+      border: 1px solid rgba(255, 215, 0, 0.3);
+    }
+
     .stats-section, .badges-section, .titles-section {
       margin-bottom: 2rem;
     }
@@ -462,11 +479,13 @@ interface Badge {
     }
   `]
 })
-export class UserProfileComponent implements OnInit {
+export class UserProfileComponent implements OnInit, OnDestroy {
   isOpen = false;
   userProfile: UserProfile | null = null;
   
   @Output() openQuestsEvent = new EventEmitter<void>();
+  
+  private subscriptions = new Subscription();
   
   // Liste des badges disponibles
   availableBadges: Badge[] = [
@@ -525,11 +544,25 @@ export class UserProfileComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private premiumService: PremiumService
   ) {}
 
   ngOnInit() {
     this.displayedBadges = this.availableBadges;
+    
+    // S'abonner aux changements de tier premium pour mettre à jour le profil
+    this.subscriptions.add(
+      this.premiumService.currentTier$.subscribe(tier => {
+        if (this.userProfile) {
+          this.userProfile.subscriptionTier = tier.tier as any;
+        }
+      })
+    );
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
   }
 
   openProfile() {
@@ -546,6 +579,9 @@ export class UserProfileComponent implements OnInit {
       // Récupérer les données utilisateur réelles depuis le service auth
       this.authService.user$.subscribe(user => {
         if (user) {
+          // Récupérer le tier actuel depuis le premium service
+          const currentTier = this.premiumService.getCurrentTier();
+          
           this.userProfile = {
             id: user.id,
             username: user.username,
@@ -559,7 +595,7 @@ export class UserProfileComponent implements OnInit {
             currentTitle: 'Explorateur', // TODO: Récupérer depuis l'API
             streamsDiscovered: 42, // TODO: Récupérer depuis l'API
             favoritesAdded: 12, // TODO: Récupérer depuis l'API
-            subscriptionTier: 'free' // TODO: Récupérer depuis l'API
+            subscriptionTier: currentTier.tier as any // Utiliser le tier actuel depuis le premium service
           };
         }
       });
@@ -573,10 +609,15 @@ export class UserProfileComponent implements OnInit {
     return (this.userProfile.currentXP / this.userProfile.nextLevelXP) * 100;
   }
 
+  getXPBoostPercentage(): number {
+    return this.premiumService.getXPBoostPercentage();
+  }
+
   getSubscriptionLabel(tier?: string): string {
     switch (tier) {
       case 'premium': return 'Premium';
       case 'vip': return 'VIP';
+      case 'legendary': return 'Légendaire';
       default: return 'Gratuit';
     }
   }

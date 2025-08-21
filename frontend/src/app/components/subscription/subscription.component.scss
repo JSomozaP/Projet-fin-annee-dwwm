@@ -229,6 +229,7 @@
   font-weight: 700;
   text-transform: uppercase;
   box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+  z-index: 10;
 }
 
 .current-badge {
@@ -243,6 +244,7 @@
   font-weight: 700;
   text-transform: uppercase;
   box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+  z-index: 10;
 }
 
 // ===== PLAN CONTENT =====

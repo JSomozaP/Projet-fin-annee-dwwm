@@ -90,6 +90,10 @@ export class AuthService {
     return isAuth;
   }
 
+  getCurrentUserSync(): User | null {
+    return this.userSubject.value;
+  }
+
   private checkAuthStatus(): void {
     console.log('🔍 Checking initial auth status...');
     const token = this.getToken();

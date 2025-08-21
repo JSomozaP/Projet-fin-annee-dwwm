@@ -2,6 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { PremiumService } from './premium.service';
 
 export interface UserProgression {
   id: string;
@@ -296,7 +297,10 @@ export class UserProgressionService implements OnDestroy {
     return this.activeViewingSessions;
   }
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient,
+    private premiumService: PremiumService
+  ) {
     this.initializeSession();
   }
 
@@ -513,12 +517,16 @@ export class UserProgressionService implements OnDestroy {
     const shouldComplete = Math.random() < 0.1;
     
     if (shouldComplete) {
+      const baseXP = 50;
+      const boostedXP = this.premiumService.calculateXPWithBoost(baseXP);
+      const xpDifference = boostedXP > baseXP ? ` (+${boostedXP - baseXP} bonus Premium!)` : '';
+      
       // Quête exemple complétée
       return [{
         id: 'demo_quest',
         title: '🎯 Quête accomplie !',
         description: `Action ${action.action} réussie !`,
-        reward: '+50 XP'
+        reward: `+${boostedXP} XP${xpDifference}`
       }];
     }
     
@@ -729,6 +737,27 @@ export class UserProgressionService implements OnDestroy {
    */
   subscribeToQuestNotifications(callback: (notification: QuestNotification | null) => void) {
     return this.questNotifications$.subscribe(callback);
+  }
+
+  /**
+   * Obtenir le nombre de quêtes quotidiennes selon le tier premium
+   */
+  getDailyQuestsCount(): number {
+    return this.premiumService.getDailyQuestsCount();
+  }
+
+  /**
+   * Vérifier si l'utilisateur est premium
+   */
+  isPremiumUser(): boolean {
+    return this.premiumService.isPremiumUser();
+  }
+
+  /**
+   * Obtenir le tier actuel de l'utilisateur
+   */
+  getCurrentTier() {
+    return this.premiumService.getCurrentTier();
   }
 
   /**

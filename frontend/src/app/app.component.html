@@ -27,6 +27,9 @@
       <a routerLink="/subscription" routerLinkActive="nav-active" class="nav-link premium-link">
         🏆 Premium <span class="rotating-star">✨</span>
       </a>
+      <a routerLink="/analytics" routerLinkActive="nav-active" class="nav-link analytics-link" *ngIf="showAnalyticsLink">
+        📊 Analytics
+      </a>
     </nav>
 
     <!-- User Actions -->
@@ -80,6 +83,9 @@
 
 <!-- Notifications de quêtes (toujours actif) -->
 <app-quest-notification></app-quest-notification>
+
+<!-- System Health Component (development only) -->
+<app-system-health *ngIf="!isProduction"></app-system-health>
 
 <!-- ===== MODALS FOOTER ===== -->
 

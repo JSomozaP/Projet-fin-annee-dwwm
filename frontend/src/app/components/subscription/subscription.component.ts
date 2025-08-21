@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { StripeService } from '../../services/stripe.service';
+import { PremiumService } from '../../services/premium.service';
 
 interface SubscriptionPlan {
   id: string;
@@ -34,13 +35,15 @@ export class SubscriptionComponent implements OnInit {
   loading = true;
   error: string | null = null;
   currentPlan = 'free';
+  isDevelopment = !environment.production;
 
   private apiUrl = environment.apiUrl;
 
   constructor(
     private http: HttpClient,
     private router: Router,
-    private stripeService: StripeService
+    private stripeService: StripeService,
+    private premiumService: PremiumService
   ) {}
 
   ngOnInit() {
@@ -165,5 +168,18 @@ export class SubscriptionComponent implements OnInit {
    */
   isButtonDisabled(planId: string): boolean {
     return this.isCurrentPlan(planId) || this.loading;
+  }
+
+  /**
+   * MÉTHODE DE TEST : Simuler un changement de tier (à supprimer en production)
+   */
+  testChangeTier(newTier: 'free' | 'premium' | 'vip' | 'legendary') {
+    console.log(`🧪 TEST: Changement vers tier ${newTier}`);
+    this.premiumService.updateUserTier(newTier);
+    this.currentPlan = newTier;
+    localStorage.setItem('userSubscriptionTier', newTier);
+    
+    // Recharger les quêtes pour voir l'effet
+    window.location.reload();
   }
 }

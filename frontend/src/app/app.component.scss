@@ -116,6 +116,26 @@
   }
 }
 
+/* ===== ANALYTICS LINK STYLES (VIP+ ONLY) ===== */
+.analytics-link {
+  background: linear-gradient(45deg, #6f42c1, #8e44ad) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  border: 2px solid #6f42c1 !important;
+  box-shadow: 0 4px 15px rgba(111, 66, 193, 0.3) !important;
+  
+  &:hover {
+    background: linear-gradient(45deg, #8e44ad, #9b59b6) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(111, 66, 193, 0.5) !important;
+  }
+  
+  &.nav-active {
+    background: linear-gradient(45deg, #9b59b6, #a569bd) !important;
+    border-color: #9b59b6 !important;
+  }
+}
+
 @keyframes premium-glow {
   0% {
     box-shadow: 0 4px 15px rgba(241, 196, 15, 0.3);

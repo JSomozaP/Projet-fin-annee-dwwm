@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { loadStripe, Stripe } from '@stripe/stripe-js';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { Observable } from 'rxjs';
+import { Observable, catchError, throwError } from 'rxjs';
+import { MonitoringService } from './monitoring.service';
 
 interface CheckoutSessionRequest {
   planId: string;
@@ -21,7 +22,10 @@ export class StripeService {
   private stripePromise: Promise<Stripe | null>;
   private apiUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient,
+    private monitoringService: MonitoringService
+  ) {
     this.stripePromise = loadStripe(environment.stripePublishableKey);
   }
 
@@ -30,7 +34,14 @@ export class StripeService {
    */
   createCheckoutSession(planId: string, userId?: string): Observable<CheckoutSessionResponse> {
     const body: CheckoutSessionRequest = { planId, userId };
-    return this.http.post<CheckoutSessionResponse>(`${this.apiUrl}/payments/create-checkout-session`, body);
+    
+    return this.http.post<CheckoutSessionResponse>(`${this.apiUrl}/payments/create-checkout-session`, body)
+      .pipe(
+        catchError(error => {
+          this.monitoringService.logPaymentError(`Failed to create checkout session for plan ${planId}`, error);
+          return throwError(() => error);
+        })
+      );
   }
 
   /**

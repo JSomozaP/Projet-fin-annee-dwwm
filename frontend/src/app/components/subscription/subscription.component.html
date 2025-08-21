@@ -77,6 +77,28 @@
     </div>
   </div>
 
+  <!-- Section de Test (Development Only) -->
+  <div class="test-section" *ngIf="isDevelopment" style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 12px;">
+    <h4 style="color: #ff6b6b; margin-bottom: 1rem;">🧪 Test des Tiers Premium (DEV ONLY)</h4>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+      <button (click)="testChangeTier('free')" style="padding: 0.5rem 1rem; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer;">
+        Test Free (6 quêtes)
+      </button>
+      <button (click)="testChangeTier('premium')" style="padding: 0.5rem 1rem; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer;">
+        Test Premium (8 quêtes)
+      </button>
+      <button (click)="testChangeTier('vip')" style="padding: 0.5rem 1rem; background: #6f42c1; color: white; border: none; border-radius: 6px; cursor: pointer;">
+        Test VIP (9 quêtes)
+      </button>
+      <button (click)="testChangeTier('legendary')" style="padding: 0.5rem 1rem; background: #ffc107; color: black; border: none; border-radius: 6px; cursor: pointer;">
+        Test Légendaire (10 quêtes)
+      </button>
+    </div>
+    <p style="font-size: 0.8rem; color: #ccc; margin-top: 0.5rem;">
+      Cliquez pour tester les différents tiers. La page se rechargera pour voir l'effet sur les quêtes.
+    </p>
+  </div>
+
   <!-- Footer -->
   <div class="subscription-footer">
     <p class="footer-text">
