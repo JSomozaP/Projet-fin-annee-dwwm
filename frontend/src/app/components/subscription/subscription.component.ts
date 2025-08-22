@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { StripeService } from '../../services/stripe.service';
-import { PremiumService } from '../../services/premium.service';
+import { firstValueFrom } from 'rxjs';
 
 interface SubscriptionPlan {
   id: string;
@@ -42,8 +42,7 @@ export class SubscriptionComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private router: Router,
-    private stripeService: StripeService,
-    private premiumService: PremiumService
+    private stripeService: StripeService
   ) {}
 
   ngOnInit() {
@@ -100,7 +99,7 @@ export class SubscriptionComponent implements OnInit {
     
     try {
       // Créer la session Stripe
-      const session = await this.stripeService.createCheckoutSession(planId, this.getCurrentUserId()).toPromise();
+      const session = await firstValueFrom(this.stripeService.createCheckoutSession(planId, this.getCurrentUserId()));
       
       if (session?.sessionId) {
         console.log('✅ Session Stripe créée:', session.sessionId);
@@ -171,15 +170,17 @@ export class SubscriptionComponent implements OnInit {
   }
 
   /**
-   * MÉTHODE DE TEST : Simuler un changement de tier (à supprimer en production)
+   * Méthode de test pour changer le tier premium (développement uniquement)
    */
-  testChangeTier(newTier: 'free' | 'premium' | 'vip' | 'legendary') {
-    console.log(`🧪 TEST: Changement vers tier ${newTier}`);
-    this.premiumService.updateUserTier(newTier);
-    this.currentPlan = newTier;
-    localStorage.setItem('userSubscriptionTier', newTier);
+  testChangeTier(tier: string) {
+    if (!this.isDevelopment) return;
     
-    // Recharger les quêtes pour voir l'effet
+    console.log(`🧪 Test changement de tier vers: ${tier}`);
+    
+    // Mettre à jour le localStorage pour simuler un changement de tier
+    localStorage.setItem('userSubscriptionTier', tier);
+    
+    // Recharger la page pour voir l'effet
     window.location.reload();
   }
 }
