@@ -45,18 +45,31 @@ const optionalAuth = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
+  console.log('🔍 OptionalAuth middleware appelé');
+  console.log('🔍 Authorization header:', authHeader ? 'Présent' : 'Absent');
+  console.log('🔍 Token extrait:', token ? token.substring(0, 20) + '...' : 'Aucun');
+
   if (token) {
     try {
+      console.log('🔓 Tentative de vérification du token...');
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log('✅ Token décodé:', decoded);
+      
       const user = await User.findById(decoded.userId);
+      console.log('👤 Utilisateur trouvé:', user ? `${user.username} (ID: ${user.id})` : 'Aucun');
       
       if (user && user.isConnected) {
         req.user = user;
+        console.log('✅ Utilisateur authentifié avec succès');
+      } else {
+        console.log('⚠️ Utilisateur non connecté ou introuvable');
       }
     } catch (error) {
       // Token invalide mais on continue sans user
-      console.log('Token optionnel invalide:', error.message);
+      console.log('❌ Token optionnel invalide:', error.message);
     }
+  } else {
+    console.log('⚠️ Aucun token fourni');
   }
 
   next();

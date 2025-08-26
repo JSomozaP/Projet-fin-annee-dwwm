@@ -177,10 +177,15 @@ export class SubscriptionComponent implements OnInit {
     
     console.log(`🧪 Test changement de tier vers: ${tier}`);
     
-    // Mettre à jour le localStorage pour simuler un changement de tier
+    // Mettre à jour le localStorage pour le PremiumService (clé userTier)
+    localStorage.setItem('userTier', tier);
+    // Garder aussi la clé subscription pour compatibilité
     localStorage.setItem('userSubscriptionTier', tier);
     
-    // Recharger la page pour voir l'effet
+    // Mettre à jour le plan actuel local
+    this.currentPlan = tier;
+    
+    // Recharger la page pour voir l'effet complet
     window.location.reload();
   }
 }

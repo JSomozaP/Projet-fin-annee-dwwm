@@ -7,6 +7,45 @@
 [![MySQL](https://img.shields.io/badge/MySQL-8.0+-blue.svg)](https://mysql.com/)
 [![Twitch API](https://img.shields.io/badge/Twitch-API%20v5-purple.svg)](https://dev.twitch.tv/)
 
+## 🔐 **Configuration Requise**
+
+⚠️ **IMPORTANT** : Ce projet utilise des clés API sensibles qui ne sont pas incluses dans le repository pour des raisons de sécurité.
+
+**Avant de commencer**, consultez le guide : [`SECURITY_KEYS.md`](SECURITY_KEYS.md)
+
+Vous aurez besoin de :
+- 🔑 Clés Twitch API (Client ID + Secret)
+- 💳 Clés Stripe (pour les paiements)
+- 🔐 Clé JWT secrète
+
+## ⚡ **Démarrage Rapide**
+
+### Option 1: Script Automatique
+```bash
+# Restaure les clés et configure l'environnement
+./start-dev.sh
+
+# Puis démarrez les serveurs (2 terminaux séparés)
+cd backend && npm start
+cd frontend && ng serve
+```
+
+### Option 2: Commandes Manuelles
+```bash
+# Backend - Restaurer les vraies clés et démarrer
+cd backend/
+cp .env.local .env
+npm start
+
+# Frontend - Restaurer les vraies clés et démarrer (nouveau terminal)
+cd frontend/src/environments/
+cp environment.local.ts environment.ts
+cd ../../..
+ng serve
+```
+
+**🌐 URLs** : Frontend sur `http://localhost:4200` | Backend sur `http://localhost:3000`
+
 ## 🎯 **Mission**
 
 Streamyscovery permet de **découvrir facilement les petits streamers** (1-10 viewers) souvent noyés dans la masse, tout en offrant la possibilité d'explorer les streamers populaires. L'application met l'accent sur :

@@ -2,8 +2,10 @@ import { Component, OnInit, EventEmitter, Output, OnDestroy } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
 import { PremiumService, UserTier } from '../../services/premium.service';
+import { UserProgressionService } from '../../services/user-progression.service';
 
 interface UserProfile {
   id: string;
@@ -170,14 +172,17 @@ interface Badge {
 
     .profile-header {
       display: flex;
-      align-items: center;
-      gap: 1rem;
+      align-items: flex-start;
+      gap: 2rem; // Augmenté de 1.5rem à 2rem
       margin-bottom: 2rem;
       position: relative;
+      padding-right: 3rem; // Espace pour le bouton de fermeture
     }
 
     .profile-avatar {
       position: relative;
+      flex-shrink: 0; // Empêche la compression
+      min-width: 80px; // Largeur minimale garantie
     }
 
     .profile-avatar img {
@@ -202,32 +207,44 @@ interface Badge {
       font-weight: bold;
       font-size: 0.8rem;
       border: 2px solid white;
+      z-index: 2; // Au-dessus de l'avatar
+    }
+
+    .profile-info {
+      flex: 1;
+      min-width: 0; // Permet le wrapping du texte
+      margin-left: 0.5rem; // Espace supplémentaire par rapport à l'avatar
     }
 
     .profile-info h2 {
-      margin: 0;
+      margin: 0 0 0.75rem 0; // Augmenté la marge du bas
       color: #fff;
       font-size: 1.5rem;
+      word-break: break-word; // Évite le débordement
     }
 
     .current-title {
       color: #ffd93d;
       font-size: 0.9rem;
-      margin-top: 0.25rem;
+      margin-bottom: 0.75rem; // Augmenté de 0.5rem à 0.75rem
+      display: block;
     }
 
     .subscription-tier {
-      padding: 0.25rem 0.75rem;
-      border-radius: 15px;
+      padding: 0.4rem 1rem; // Augmenté le padding
+      border-radius: 20px; // Plus arrondi
       font-size: 0.8rem;
       font-weight: bold;
-      margin-top: 0.5rem;
       display: inline-block;
+      margin-top: 0.25rem; // Petit espace au-dessus
+      white-space: nowrap; // Empêche le wrap du texte
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); // Ombre pour la profondeur
     }
 
     .tier-free { background: #555; color: #fff; }
     .tier-premium { background: linear-gradient(45deg, #9146ff, #b794f6); color: #fff; }
     .tier-vip { background: linear-gradient(45deg, #ffd700, #ffed4e); color: #000; }
+    .tier-legendary { background: linear-gradient(45deg, #ff6b35, #f7931e); color: #fff; }
 
     .close-btn {
       position: absolute;
@@ -244,6 +261,13 @@ interface Badge {
       display: flex;
       align-items: center;
       justify-content: center;
+      z-index: 10; // Au-dessus de tout
+      transition: all 0.2s ease;
+    }
+
+    .close-btn:hover {
+      background: #ff3838;
+      transform: scale(1.1);
     }
 
     .xp-section {
@@ -545,7 +569,9 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private premiumService: PremiumService
+    private premiumService: PremiumService,
+    private userProgressionService: UserProgressionService,
+    private http: HttpClient
   ) {}
 
   ngOnInit() {
@@ -576,31 +602,67 @@ export class UserProfileComponent implements OnInit, OnDestroy {
 
   private async loadUserProfile() {
     try {
+      console.log('🔄 Chargement du profil utilisateur...');
+      
       // Récupérer les données utilisateur réelles depuis le service auth
-      this.authService.user$.subscribe(user => {
+      this.authService.user$.subscribe(async user => {
         if (user) {
-          // Récupérer le tier actuel depuis le premium service
-          const currentTier = this.premiumService.getCurrentTier();
+          console.log('👤 Utilisateur trouvé:', user.username);
           
-          this.userProfile = {
-            id: user.id,
-            username: user.username,
-            avatarUrl: user.avatar_url || 'https://via.placeholder.com/80',
-            level: 5, // TODO: Récupérer depuis l'API
-            currentXP: 750, // TODO: Récupérer depuis l'API
-            nextLevelXP: 1500, // TODO: Récupérer depuis l'API
-            totalXP: 3250, // TODO: Récupérer depuis l'API
-            badges: ['first_discovery', 'daily_explorer', 'social_butterfly'], // TODO: Récupérer depuis l'API
-            titles: ['Explorateur', 'Découvreur'], // TODO: Récupérer depuis l'API
-            currentTitle: 'Explorateur', // TODO: Récupérer depuis l'API
-            streamsDiscovered: 42, // TODO: Récupérer depuis l'API
-            favoritesAdded: 12, // TODO: Récupérer depuis l'API
-            subscriptionTier: currentTier.tier as any // Utiliser le tier actuel depuis le premium service
-          };
+          // Récupérer les données réelles de progression
+          this.userProgressionService.getUserProgression().subscribe(async userProgress => {
+            console.log('📊 Données de progression récupérées:', userProgress);
+            
+            // Récupérer les vrais favoris
+            const realFavorites = await this.getRealFavorites();
+            console.log('❤️ Favoris réels récupérés:', realFavorites?.length || 0);
+            
+            const currentTier = this.premiumService.getCurrentTier();
+            console.log('🔍 Tier récupéré depuis PremiumService:', currentTier);
+            console.log('🔍 Type de currentTier.tier:', typeof currentTier?.tier);
+            console.log('🔍 Valeur exacte de currentTier.tier:', JSON.stringify(currentTier?.tier));
+            
+            // Mapper correctement le tier
+            let subscriptionTier: 'free' | 'premium' | 'vip' | 'legendary' = 'free';
+            if (currentTier && currentTier.tier) {
+              const tierName = currentTier.tier.toLowerCase().trim();
+              console.log('🎯 Nom du tier normalisé:', JSON.stringify(tierName));
+              if (['premium', 'vip', 'legendary'].includes(tierName)) {
+                subscriptionTier = tierName as 'premium' | 'vip' | 'legendary';
+                console.log('✅ Tier mappé avec succès:', subscriptionTier);
+              } else {
+                console.log('⚠️ Tier non reconnu, defaulting to free. Tier reçu:', tierName);
+              }
+            } else {
+              console.log('⚠️ currentTier ou currentTier.tier est null/undefined');
+            }
+            
+            this.userProfile = {
+              id: user.id,
+              username: user.username,
+              avatarUrl: user.avatar_url || 'assets/default-avatar.png',
+              level: userProgress?.level || 1,
+              currentXP: userProgress?.currentXP || 0,
+              nextLevelXP: userProgress?.nextLevelXP || 1000,
+              totalXP: userProgress?.totalXP || 0,
+              badges: userProgress?.badges || [],
+              titles: userProgress?.titles || [],
+              currentTitle: userProgress?.currentTitle || 'Novice',
+              streamsDiscovered: userProgress?.streamsDiscovered || 0,
+              favoritesAdded: realFavorites ? realFavorites.length : 0, // Vrais favoris
+              subscriptionTier: subscriptionTier
+            };
+
+            console.log('✅ Profil utilisateur final chargé:', this.userProfile);
+            console.log('🎯 Subscription tier final:', subscriptionTier);
+            console.log('⚡ XP actuel:', this.userProfile.currentXP);
+            console.log('📈 XP total:', this.userProfile.totalXP);
+            console.log('🖼️ Avatar URL:', this.userProfile.avatarUrl);
+          });
         }
       });
     } catch (error) {
-      console.error('Erreur lors du chargement du profil:', error);
+      console.error('❌ Erreur lors du chargement du profil:', error);
     }
   }
 
@@ -649,5 +711,25 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     this.closeProfile();
     // Rediriger vers la page d'abonnement
     this.router.navigate(['/subscription']);
+  }
+
+  private async getRealFavorites(): Promise<any[]> {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        return [];
+      }
+
+      const response = await this.http.get<any>('http://localhost:3000/api/favorites', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).toPromise();
+
+      return response.favorites || [];
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération des favoris:', error);
+      return [];
+    }
   }
 }

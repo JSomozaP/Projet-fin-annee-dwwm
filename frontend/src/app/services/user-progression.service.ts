@@ -1,8 +1,8 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
-import { PremiumService } from './premium.service';
 
 export interface UserProgression {
   id: string;
@@ -297,10 +297,7 @@ export class UserProgressionService implements OnDestroy {
     return this.activeViewingSessions;
   }
 
-  constructor(
-    private http: HttpClient,
-    private premiumService: PremiumService
-  ) {
+  constructor(private http: HttpClient) {
     this.initializeSession();
   }
 
@@ -517,16 +514,12 @@ export class UserProgressionService implements OnDestroy {
     const shouldComplete = Math.random() < 0.1;
     
     if (shouldComplete) {
-      const baseXP = 50;
-      const boostedXP = this.premiumService.calculateXPWithBoost(baseXP);
-      const xpDifference = boostedXP > baseXP ? ` (+${boostedXP - baseXP} bonus Premium!)` : '';
-      
       // Quête exemple complétée
       return [{
         id: 'demo_quest',
         title: '🎯 Quête accomplie !',
         description: `Action ${action.action} réussie !`,
-        reward: `+${boostedXP} XP${xpDifference}`
+        reward: '+50 XP'
       }];
     }
     
@@ -584,7 +577,24 @@ export class UserProgressionService implements OnDestroy {
 
   // Obtenir la progression de l'utilisateur connecté
   getUserProgression(): Observable<UserProgression> {
-    return this.http.get<UserProgression>(`${this.baseUrl}/quests/progression`);
+    const token = localStorage.getItem('token');
+    const headers: any = {};
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+      console.log('🔑 Token ajouté aux headers pour getUserProgression');
+    } else {
+      console.log('⚠️ Aucun token trouvé pour getUserProgression');
+    }
+    
+    return this.http.get<any>(`${this.baseUrl}/quests/progression`, { headers })
+      .pipe(
+        map(response => {
+          console.log('📊 Réponse brute getUserProgression:', response);
+          // Le backend renvoie { success: true, data: progression }
+          return response.data || response;
+        })
+      );
   }
 
   // Obtenir les quêtes de l'utilisateur
@@ -740,27 +750,6 @@ export class UserProgressionService implements OnDestroy {
   }
 
   /**
-   * Obtenir le nombre de quêtes quotidiennes selon le tier premium
-   */
-  getDailyQuestsCount(): number {
-    return this.premiumService.getDailyQuestsCount();
-  }
-
-  /**
-   * Vérifier si l'utilisateur est premium
-   */
-  isPremiumUser(): boolean {
-    return this.premiumService.isPremiumUser();
-  }
-
-  /**
-   * Obtenir le tier actuel de l'utilisateur
-   */
-  getCurrentTier() {
-    return this.premiumService.getCurrentTier();
-  }
-
-  /**
    * Forcer l'émission d'une notification (pour debug/test)
    */
   triggerTestNotification(): void {
@@ -779,5 +768,10 @@ export class UserProgressionService implements OnDestroy {
    */
   ngOnDestroy(): void {
     this.stopAllViewingSessions();
+  }
+
+  // Méthode pour accéder aux données de session
+  getSessionData() {
+    return this.sessionData;
   }
 }

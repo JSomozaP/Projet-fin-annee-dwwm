@@ -105,9 +105,16 @@ const questController = {
   // GET /api/quests/progression - Progression globale de l'utilisateur
   async getUserProgression(req, res) {
     try {
+      console.log('🎯 getUserProgression appelé');
+      console.log('🔍 req.user:', req.user);
+      console.log('🔍 req.query:', req.query);
+      
       const userId = req.user?.id || req.query.userId;
       
+      console.log('🆔 UserId extrait:', userId);
+      
       if (!userId) {
+        console.log('❌ Pas d\'userId trouvé');
         return res.status(401).json({
           success: false,
           error: 'Utilisateur non authentifié'
@@ -117,13 +124,40 @@ const questController = {
       const UserProgression = require('../models/UserProgression');
       let progression = await UserProgression.findOne({ where: { userId } });
       
+      console.log('📊 Progression trouvée:', progression);
+      
       if (!progression) {
-        progression = await UserProgression.create({ userId });
+        console.log('🔄 Création d\'une nouvelle progression pour userId:', userId);
+        progression = await UserProgression.create({ 
+          userId,
+          level: 1,
+          currentXP: 0,
+          totalXP: 0,
+          nextLevelXP: 1000,
+          streamsDiscovered: 0,
+          favoritesAdded: 0,
+          badges: [],
+          titles: ['Novice'],
+          currentTitle: 'Novice'
+        });
+        console.log('✅ Nouvelle progression créée:', progression);
       }
 
       res.json({
         success: true,
-        data: progression
+        data: {
+          id: progression.id,
+          userId: progression.userId,
+          level: progression.level || 1,
+          currentXP: progression.currentXP || 0,
+          totalXP: progression.totalXP || 0,
+          nextLevelXP: progression.nextLevelXP || 1000,
+          streamsDiscovered: progression.streamsDiscovered || 0,
+          favoritesAdded: progression.favoritesAdded || 0,
+          badges: progression.badges || [],
+          titles: progression.titles || ['Novice'],
+          currentTitle: progression.currentTitle || 'Novice'
+        }
       });
       
     } catch (error) {

@@ -5,17 +5,15 @@ import { SubscriptionComponent } from './components/subscription/subscription.co
 import { PaymentSuccessComponent } from './components/payment-success/payment-success.component';
 import { PaymentCancelComponent } from './components/payment-cancel/payment-cancel.component';
 import { PremiumAnalyticsComponent } from './components/premium-analytics/premium-analytics.component';
-import { SystemHealthComponent } from './components/system-health/system-health.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/discovery', pathMatch: 'full' },
   { path: 'discovery', component: DiscoveryComponent },
   { path: 'favorites', component: FavoritesComponent },
+  { path: 'analytics', component: PremiumAnalyticsComponent },
   { path: 'subscription', component: SubscriptionComponent },
   { path: 'subscription/success', component: PaymentSuccessComponent },
   { path: 'subscription/cancel', component: PaymentCancelComponent },
-  { path: 'analytics', component: PremiumAnalyticsComponent },
-  { path: 'admin/health', component: SystemHealthComponent },
   { 
     path: 'auth/success', 
     loadComponent: () => import('./components/auth-callback/auth-callback.component').then(m => m.AuthCallbackComponent)

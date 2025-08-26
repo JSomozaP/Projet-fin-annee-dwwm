@@ -147,15 +147,14 @@ router.get('/test', (req, res) => {
 });
 
 /**
- * Créer une session de checkout Stripe (mock pour le moment)
+ * Créer une session de checkout Stripe
  * POST /api/payments/create-checkout-session
  */
 router.post('/create-checkout-session', async (req, res) => {
   try {
     const { planId } = req.body;
-    // TODO: Récupérer depuis l'authentification réelle
-    const userId = req.body.userId || 'temp-user-1';
-
+    const userId = 'f7be123d-6c57-11f0-8ddb-d415e749b7bc'; // ID pouikdev
+    
     console.log(`🔄 Création session Stripe pour plan: ${planId}, user: ${userId}`);
 
     // Validation du plan

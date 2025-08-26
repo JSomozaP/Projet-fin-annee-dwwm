@@ -5,17 +5,15 @@ import { Subject, takeUntil } from 'rxjs';
 
 import { AuthService, User } from './services/auth.service';
 import { FavoriteService } from './services/favorite.service';
-import { PremiumService } from './services/premium.service';
+import { PremiumService, UserTier } from './services/premium.service';
 import { UserProfileComponent } from './components/user-profile/user-profile.component';
 import { QuestsComponent } from './components/quests/quests.component';
 import { QuestNotificationComponent } from './components/quest-notification/quest-notification.component';
-import { SystemHealthComponent } from './components/system-health/system-health.component';
-import { MonitoringService } from './services/monitoring.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, UserProfileComponent, QuestsComponent, QuestNotificationComponent, SystemHealthComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, UserProfileComponent, QuestsComponent, QuestNotificationComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
@@ -27,13 +25,14 @@ export class AppComponent implements OnInit, OnDestroy {
   user: User | null = null;
   favoriteCount = 0;
 
+  // États premium - initialisation directe pour éviter l'erreur TS
+  currentTier: UserTier = { tier: 'free', displayName: 'Gratuit', xpBoost: 0, dailyQuests: 6, weeklyQuests: 4, monthlyQuests: 3, features: [] };
+  hasAnalyticsAccess = false;
+
   // États des modals footer
   showAboutModal = false;
   showPrivacyModal = false;
   showContactModal = false;
-  
-  // Analytics link visibility
-  showAnalyticsLink = false;
 
   private destroy$ = new Subject<void>();
 
@@ -41,10 +40,6 @@ export class AppComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private favoriteService = inject(FavoriteService);
   private premiumService = inject(PremiumService);
-  private monitoringService = inject(MonitoringService);
-
-  // Production mode check
-  isProduction = false;
 
   // Référence au composant profil utilisateur
   @ViewChild(UserProfileComponent) userProfile!: UserProfileComponent;
@@ -53,6 +48,19 @@ export class AppComponent implements OnInit, OnDestroy {
   @ViewChild(QuestsComponent) questsComponent!: QuestsComponent;
 
   ngOnInit(): void {
+    // 🔥 INITIALISER LE TIER PREMIUM EN PREMIER
+    this.currentTier = this.premiumService.getCurrentTier();
+    this.hasAnalyticsAccess = this.premiumService.hasAnalyticsAccess();
+    
+    // Écouter les changements de tier premium
+    this.premiumService.currentTier$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(tier => {
+        console.log('🎉 App: Tier updated to:', tier.displayName);
+        this.currentTier = tier;
+        this.hasAnalyticsAccess = this.premiumService.hasAnalyticsAccess();
+      });
+
     // Écouter les changements d'authentification
     this.authService.isAuthenticated$
       .pipe(takeUntil(this.destroy$))
@@ -73,17 +81,6 @@ export class AppComponent implements OnInit, OnDestroy {
       .subscribe(favorites => {
         this.favoriteCount = favorites.length;
       });
-
-    // Écouter les changements de tier premium pour afficher le lien Analytics
-    this.premiumService.currentTier$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(tier => {
-        this.showAnalyticsLink = tier.tier === 'vip' || tier.tier === 'legendary';
-      });
-    
-    // Vérifier le mode de production
-    this.isProduction = window.location.protocol === 'https:' && 
-                       !window.location.hostname.includes('localhost');
   }
 
   ngOnDestroy(): void {

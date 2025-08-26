@@ -229,7 +229,7 @@
   font-weight: 700;
   text-transform: uppercase;
   box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
-  z-index: 10;
+  z-index: 10; // Au-dessus du liseré
 }
 
 .current-badge {
@@ -244,7 +244,7 @@
   font-weight: 700;
   text-transform: uppercase;
   box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
-  z-index: 10;
+  z-index: 10; // Au-dessus du liseré vert
 }
 
 // ===== PLAN CONTENT =====
@@ -470,5 +470,129 @@
   
   .plan-header .price-amount {
     font-size: 1.8rem;
+  }
+}
+
+// ===== TEST BUTTONS SECTION (Development only) =====
+.test-buttons-section {
+  margin-top: 3rem;
+  margin-bottom: 2rem;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  
+  h3 {
+    color: white;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  
+  .test-description {
+    color: rgba(255, 255, 255, 0.8);
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  
+  .test-buttons-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    justify-content: center;
+    
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      max-width: 300px;
+      margin: 0 auto;
+    }
+  }
+  
+  .test-btn {
+    padding: 1rem 1.5rem;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+    
+    &:hover::before {
+      left: 100%;
+    }
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+    
+    &.active {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    }
+    
+    // Plan-specific colors
+    &.test-free {
+      background: linear-gradient(135deg, #6B73FF 0%, #000DFF 100%);
+      color: white;
+      
+      &.active {
+        box-shadow: 0 0 20px rgba(107, 115, 255, 0.5);
+      }
+    }
+    
+    &.test-premium {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+      
+      &.active {
+        box-shadow: 0 0 20px rgba(56, 239, 125, 0.5);
+      }
+    }
+    
+    &.test-vip {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      
+      &.active {
+        box-shadow: 0 0 20px rgba(118, 75, 162, 0.5);
+      }
+    }
+    
+    &.test-legendary {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+      
+      &.active {
+        box-shadow: 0 0 20px rgba(245, 87, 108, 0.5);
+      }
+    }
+    
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      
+      &:hover {
+        transform: none;
+      }
+    }
   }
 }

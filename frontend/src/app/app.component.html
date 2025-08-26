@@ -24,11 +24,15 @@
         Favoris
         <span class="badge" *ngIf="favoriteCount > 0">{{ favoriteCount }}</span>
       </a>
+      
+      <!-- 📊 Analytics Premium - VIP et Legendary seulement -->
+      <a routerLink="/analytics" routerLinkActive="nav-active" class="nav-link analytics-link" *ngIf="isAuthenticated && hasAnalyticsAccess">
+        📊 Analytics
+        <span class="premium-badge">{{currentTier.badge}}</span>
+      </a>
+      
       <a routerLink="/subscription" routerLinkActive="nav-active" class="nav-link premium-link">
         🏆 Premium <span class="rotating-star">✨</span>
-      </a>
-      <a routerLink="/analytics" routerLinkActive="nav-active" class="nav-link analytics-link" *ngIf="showAnalyticsLink">
-        📊 Analytics
       </a>
     </nav>
 
@@ -83,9 +87,6 @@
 
 <!-- Notifications de quêtes (toujours actif) -->
 <app-quest-notification></app-quest-notification>
-
-<!-- System Health Component (development only) -->
-<app-system-health *ngIf="!isProduction"></app-system-health>
 
 <!-- ===== MODALS FOOTER ===== -->
 

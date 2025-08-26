@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { PremiumService } from './premium.service';
 
 export interface User {
   id: string;
@@ -23,7 +24,7 @@ export class AuthService {
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
   public user$ = this.userSubject.asObservable();
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private premiumService: PremiumService) {
     console.log('🚀 AuthService constructor called');
     this.checkAuthStatus();
   }
@@ -63,6 +64,12 @@ export class AuthService {
         const user = response.user || response;
         this.userSubject.next(user);
         this.isAuthenticatedSubject.next(true);
+        
+        // 🔥 SYNCHRONISATION CRITIQUE : Mettre à jour le tier premium
+        if (user.subscription_tier) {
+          console.log('🎉 Synchronisation tier:', user.subscription_tier);
+          this.premiumService.updateUserTier(user.subscription_tier);
+        }
       })
     );
   }
@@ -88,10 +95,6 @@ export class AuthService {
     const isAuth = !!token;
     console.log('🔒 Checking auth status:', isAuth);
     return isAuth;
-  }
-
-  getCurrentUserSync(): User | null {
-    return this.userSubject.value;
   }
 
   private checkAuthStatus(): void {

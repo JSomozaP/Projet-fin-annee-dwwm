@@ -217,4 +217,30 @@ export class PremiumService {
   isPremiumUser(): boolean {
     return this.getCurrentTier().tier !== 'free';
   }
+
+  /**
+   * 🔥 MÉTHODE CRITIQUE MANQUANTE DE DRAFT15
+   * Calculer la récompense XP d'une quête avec le boost appliqué
+   */
+  getQuestRewardWithBoost(baseReward: number): number {
+    const boost = this.getCurrentTier().xpBoost;
+    const boostedReward = Math.floor(baseReward * (1 + boost / 100));
+    console.log(`🎯 Quest reward: ${baseReward} XP → ${boostedReward} XP (boost +${boost}%)`);
+    return boostedReward;
+  }
+
+  /**
+   * Obtenir l'affichage formaté du boost XP pour l'UI
+   */
+  getXPBoostDisplay(): string {
+    const boost = this.getCurrentTier().xpBoost;
+    return boost > 0 ? `+${boost}%` : '';
+  }
+
+  /**
+   * Vérifier si l'utilisateur peut voir l'onglet Analytics
+   */
+  canSeeAnalytics(): boolean {
+    return this.hasAnalyticsAccess();
+  }
 }

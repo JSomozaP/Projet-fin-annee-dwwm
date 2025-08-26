@@ -8,6 +8,11 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors());
+
+// IMPORTANT : Webhook Stripe doit être configuré AVANT express.json()
+// pour recevoir le raw body nécessaire à la validation des signatures
+app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

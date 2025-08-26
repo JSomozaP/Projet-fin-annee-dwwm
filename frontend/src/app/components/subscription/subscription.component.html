@@ -77,26 +77,39 @@
     </div>
   </div>
 
-  <!-- Section de Test (Development Only) -->
-  <div class="test-section" *ngIf="isDevelopment" style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 12px;">
-    <h4 style="color: #ff6b6b; margin-bottom: 1rem;">🧪 Test des Tiers Premium (DEV ONLY)</h4>
-    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-      <button (click)="testChangeTier('free')" style="padding: 0.5rem 1rem; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer;">
-        Test Free (6 quêtes)
+  <!-- Development Test Buttons -->
+  <div *ngIf="isDevelopment" class="test-buttons-section">
+    <h3>🧪 Boutons de Démonstration - Changement de Plan Instantané</h3>
+    <p class="test-description">
+      Utilisez ces boutons pour tester les différents niveaux d'abonnement sans passer par Stripe.
+      Rechargera automatiquement la page pour afficher les changements.
+    </p>
+    <div class="test-buttons-grid">
+      <button 
+        class="test-btn test-free" 
+        [class.active]="currentPlan === 'free'"
+        (click)="testChangeTier('free')">
+        Test Free (Gratuit)
       </button>
-      <button (click)="testChangeTier('premium')" style="padding: 0.5rem 1rem; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer;">
-        Test Premium (8 quêtes)
+      <button 
+        class="test-btn test-premium" 
+        [class.active]="currentPlan === 'premium'"
+        (click)="testChangeTier('premium')">
+        Test Premium (5€/mois)
       </button>
-      <button (click)="testChangeTier('vip')" style="padding: 0.5rem 1rem; background: #6f42c1; color: white; border: none; border-radius: 6px; cursor: pointer;">
-        Test VIP (9 quêtes)
+      <button 
+        class="test-btn test-vip" 
+        [class.active]="currentPlan === 'vip'"
+        (click)="testChangeTier('vip')">
+        Test VIP (9€/mois)
       </button>
-      <button (click)="testChangeTier('legendary')" style="padding: 0.5rem 1rem; background: #ffc107; color: black; border: none; border-radius: 6px; cursor: pointer;">
-        Test Légendaire (10 quêtes)
+      <button 
+        class="test-btn test-legendary" 
+        [class.active]="currentPlan === 'legendary'"
+        (click)="testChangeTier('legendary')">
+        Test Légendaire (15€/mois)
       </button>
     </div>
-    <p style="font-size: 0.8rem; color: #ccc; margin-top: 0.5rem;">
-      Cliquez pour tester les différents tiers. La page se rechargera pour voir l'effet sur les quêtes.
-    </p>
   </div>
 
   <!-- Footer -->
