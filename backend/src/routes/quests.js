@@ -9,6 +9,7 @@ router.get('/', auth.optionalAuth, questController.getUserQuests);
 router.get('/daily', auth.optionalAuth, questController.getDailyQuests);
 router.get('/progression', auth.optionalAuth, questController.getUserProgression);
 router.post('/track-action', auth.optionalAuth, questController.trackAction);
+router.post('/recalculate-level', auth.optionalAuth, questController.recalculateLevel);
 
 // Routes admin
 router.post('/initialize', questController.initializeQuests);

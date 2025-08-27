@@ -80,10 +80,10 @@ const questController = {
         });
       }
 
-      console.log(`🎯 Action trackée: ${action} pour ${userId}`, data);
+      console.log(`🎯 Action trackée: ${action} pour ${userId}`);
 
       // Mettre à jour la progression des quêtes
-      await questService.updateQuestProgress(userId, 'all', {
+      const result = await questService.updateQuestProgress(userId, 'all', {
         action,
         ...data
       });
@@ -223,6 +223,44 @@ const questController = {
       res.status(500).json({
         success: false,
         error: 'Erreur lors de l\'initialisation des quêtes'
+      });
+    }
+  },
+
+  // POST /api/quests/recalculate-level - Recalculer le niveau basé sur l'XP
+  async recalculateLevel(req, res) {
+    try {
+      const userId = req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Utilisateur non authentifié'
+        });
+      }
+
+      console.log(`🔄 Recalcul du niveau pour l'utilisateur: ${userId}`);
+      
+      const result = await questService.recalculateUserLevel(userId);
+      
+      if (result.success) {
+        res.json({
+          success: true,
+          message: 'Niveau recalculé avec succès',
+          data: result.progression
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          error: result.error || 'Erreur lors du recalcul'
+        });
+      }
+      
+    } catch (error) {
+      console.error('❌ Erreur recalcul niveau:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Erreur lors du recalcul du niveau'
       });
     }
   }

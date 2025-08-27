@@ -3,20 +3,20 @@ const { pool } = require('../config/database');
 class UserProgression {
   constructor(data) {
     this.id = data.id;
-    this.userId = data.user_id;
+    this.userId = data.userId; // Corrigé: utiliser camelCase
     this.level = data.level;
-    this.totalXP = data.total_xp;
-    this.currentXP = data.current_xp;
-    this.nextLevelXP = data.next_level_xp;
+    this.totalXP = data.totalXP; // Corrigé: utiliser camelCase
+    this.currentXP = data.currentXP; // Corrigé: utiliser camelCase
+    this.nextLevelXP = data.nextLevelXP; // Corrigé: utiliser camelCase
     this.badges = data.badges ? (typeof data.badges === 'string' ? JSON.parse(data.badges) : data.badges) : [];
     this.titles = data.titles ? (typeof data.titles === 'string' ? JSON.parse(data.titles) : data.titles) : [];
-    this.currentTitle = data.current_title;
-    this.streamsDiscovered = data.streams_discovered;
-    this.favoritesAdded = data.favorites_added;
-    this.questsCompleted = data.quests_completed;
-    this.subscriptionBonus = data.subscription_bonus;
-    this.dateCreation = data.date_creation;
-    this.dateModification = data.date_modification;
+    this.currentTitle = data.currentTitle; // Corrigé: utiliser camelCase
+    this.streamsDiscovered = data.streamsDiscovered; // Corrigé: utiliser camelCase
+    this.favoritesAdded = data.favoritesAdded; // Corrigé: utiliser camelCase
+    this.questsCompleted = data.questsCompleted; // Corrigé: utiliser camelCase
+    this.subscriptionBonus = data.subscriptionBonus; // Corrigé: utiliser camelCase
+    this.dateCreation = data.createdAt; // Corrigé: utiliser le nom de colonne réel
+    this.dateModification = data.updatedAt; // Corrigé: utiliser le nom de colonne réel
   }
 
   // Créer une nouvelle progression utilisateur
@@ -125,6 +125,10 @@ class UserProgression {
       if (data.streamsDiscovered !== undefined) {
         updates.push('streamsDiscovered = ?');
         params.push(data.streamsDiscovered);
+      }
+      if (data.favoritesAdded !== undefined) {
+        updates.push('favoritesAdded = ?');
+        params.push(data.favoritesAdded);
       }
       if (data.totalWatchTime !== undefined) {
         updates.push('totalWatchTime = ?');

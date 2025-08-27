@@ -146,14 +146,17 @@ export class QuestsComponent implements OnInit, OnDestroy {
         quest.completed = true;
         console.log(`✅ Quête complétée: ${quest.title}`);
         
+        // **NOUVEAU: Appeler le backend pour donner les XP**
+        this.completeQuestOnBackend(quest);
+        
         // Créer une description claire de ce qui a été accompli
         const accomplishmentMessage = this.generateAccomplishmentMessage(quest);
         
         // Émettre une notification via le service
         this.userProgressionService['emitQuestNotification']({
           id: quest.id,
-          questTitle: `🎯 Quête accomplie !`,
-          questDescription: accomplishmentMessage,
+          questTitle: quest.title, // Utiliser le vrai titre de la quête
+          questDescription: `${quest.description} - Terminée !`,
           reward: quest.reward,
           type: 'quest_completed' as any,
           timestamp: new Date()
@@ -264,6 +267,58 @@ export class QuestsComponent implements OnInit, OnDestroy {
     }
     
     return nextReset;
+  }
+
+  private completedQuestIds = new Set<string>(); // Protection contre les doublons
+
+  /**
+   * Notifier le backend qu'une quête a été complétée pour ajouter les XP
+   */
+  private completeQuestOnBackend(quest: any) {
+    // Protection contre les envois multiples
+    if (this.completedQuestIds.has(quest.id)) {
+      console.log(`⚠️ Quête ${quest.title} déjà envoyée au backend, ignore.`);
+      return;
+    }
+    
+    console.log(`🚀 Envoi de la completion de quête au backend:`, quest);
+    
+    // Marquer comme envoyée
+    this.completedQuestIds.add(quest.id);
+    
+    // Créer un objet quest compatible avec le backend
+    const questData = {
+      id: quest.id,
+      title: quest.title,
+      type: quest.type,
+      reward: quest.reward
+    };
+    
+    // Appeler l'API du backend pour ajouter les XP
+    // Note: Ici nous simulons un appel, mais il faudrait implémenter l'endpoint
+    this.userProgressionService.trackAction('quest_completed', {
+      questId: quest.id,
+      questTitle: quest.title,
+      questType: quest.type,
+      xpReward: this.extractXPFromReward(quest.reward)
+    }).subscribe({
+      next: (response) => {
+        console.log(`✅ Quête ${quest.title} envoyée au backend avec succès`, response);
+      },
+      error: (error) => {
+        console.error(`❌ Erreur lors de l'envoi de la quête ${quest.title} au backend:`, error);
+        // En cas d'erreur, retirer de la liste pour permettre un retry
+        this.completedQuestIds.delete(quest.id);
+      }
+    });
+  }
+
+  /**
+   * Extraire la valeur XP d'une chaîne reward comme "+100 XP"
+   */
+  private extractXPFromReward(reward: string): number {
+    const match = reward.match(/\+(\d+)\s*XP/);
+    return match ? parseInt(match[1]) : 50; // Valeur par défaut si pas trouvé
   }
 
   /**
