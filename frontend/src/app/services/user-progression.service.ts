@@ -361,8 +361,6 @@ export class UserProgressionService implements OnDestroy {
    * Tracker la découverte d'un nouveau streamer
    */
   trackStreamDiscovery(streamerId: string, streamerName: string, viewerCount: number, gameCategory: string, language: string = 'fr'): void {
-    console.log('🎯 Tracking stream discovery:', { streamerId, streamerName, viewerCount, gameCategory });
-    
     // Vérifier si c'est une nouvelle découverte
     if (!this.sessionData.streamersDiscovered.has(streamerId)) {
       this.sessionData.streamersDiscovered.add(streamerId);
@@ -397,8 +395,6 @@ export class UserProgressionService implements OnDestroy {
    * Tracker l'ajout d'un favori
    */
   trackFavoriteAdded(streamerId: string, streamerName: string, viewerCount: number, isRevisit: boolean = false): void {
-    console.log('❤️ Tracking favorite added:', { streamerId, streamerName, viewerCount, isRevisit });
-    
     if (!isRevisit && !this.sessionData.favoritesAdded.has(streamerId)) {
       this.sessionData.favoritesAdded.add(streamerId);
       this.sessionData.dailyActions.favorites++;
@@ -410,7 +406,7 @@ export class UserProgressionService implements OnDestroy {
         streamerId,
         streamerName,
         viewerCount,
-        isMicroStreamer: viewerCount < 20,
+        isMicroStreamer: viewerCount < 10,  // Cohérence avec stream_discovered
         isSmallStreamer: viewerCount < 50,
         isRevisit
       }
@@ -473,8 +469,6 @@ export class UserProgressionService implements OnDestroy {
     // Appel API vers le backend (ou simulation locale pour le développement)
     this.trackAction(action.action, action.data).subscribe({
       next: (response) => {
-        console.log('✅ Quest action processed:', response);
-        
         // Vérifier si des quêtes ont été complétées
         this.checkQuestCompletions(action);
       },
@@ -635,6 +629,20 @@ export class UserProgressionService implements OnDestroy {
   // Changer le titre actuel
   changeTitle(title: string): Observable<any> {
     return this.http.patch(`${this.baseUrl}/quests/progression/title`, { title });
+  }
+
+  // **NOUVELLE FONCTION: Récupérer les données de progression des quêtes conditionnelles**
+  getQuestProgressData(): Observable<any> {
+    const token = localStorage.getItem('token');
+    const requestOptions: any = {};
+    
+    if (token) {
+      requestOptions.headers = {
+        'Authorization': `Bearer ${token}`
+      };
+    }
+    
+    return this.http.get(`${this.baseUrl}/quests/progress-data`, requestOptions);
   }
 
   // Calculer les informations de niveau

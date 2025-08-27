@@ -74,7 +74,7 @@ export class QuestsComponent implements OnInit, OnDestroy {
     // S'abonner aux statistiques locales pour mettre à jour les quêtes
     this.subscriptions.add(
       this.userProgressionService.getLocalStats().subscribe(stats => {
-        this.updateQuestsFromStats(stats);
+        this.loadQuestProgressDataAndUpdate(stats);
       })
     );
 
@@ -87,6 +87,35 @@ export class QuestsComponent implements OnInit, OnDestroy {
         this.generateAndSaveQuests();
       })
     );
+  }
+
+  /**
+   * Charger les données de progression conditionnelles et mettre à jour les quêtes
+   */
+  private loadQuestProgressDataAndUpdate(localStats: any) {
+    this.userProgressionService.getQuestProgressData().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          const questProgressData = response.data;
+          console.log('📊 Données de progression des quêtes reçues:', questProgressData);
+          
+          // Fusionner les stats locales avec les données conditionnelles
+          const mergedStats = {
+            ...localStats,
+            ...questProgressData
+          };
+          
+          this.updateQuestsFromStats(mergedStats);
+        } else {
+          // En cas d'erreur, utiliser seulement les stats locales
+          this.updateQuestsFromStats(localStats);
+        }
+      },
+      error: (error) => {
+        console.warn('⚠️ Impossible de charger les données de progression, utilisation des stats locales:', error);
+        this.updateQuestsFromStats(localStats);
+      }
+    });
   }
 
   /**
@@ -138,6 +167,30 @@ export class QuestsComponent implements OnInit, OnDestroy {
         case 'weekly_variety_gaming':
         case 'monthly_variety_master':
           quest.progress = stats.gameCategories || 0;
+          break;
+          
+        // **NOUVEAU: Quêtes spécifiques aux micro-streamers**
+        case 'daily_micro_streamers':
+        case 'daily_micro_discovery':
+        case 'daily_micro_hunter':
+          // Utiliser les vraies données conditionnelles si disponibles
+          quest.progress = stats.dailyMicroStreamersDiscovered ?? stats.microStreamersDiscovered ?? Math.floor((stats.streamsDiscovered || 0) * 0.1);
+          break;
+          
+        // **NOUVEAU: Quêtes de favoris micro-streamers**
+        case 'weekly_micro_supporter':
+        case 'monthly_micro_champion':
+          quest.progress = stats.microStreamersFavorited ?? Math.floor((stats.favoritesAdded || 0) * 0.2);
+          break;
+          
+        // **NOUVEAU: Quêtes de diversité d'audience**
+        case 'weekly_size_diversity':
+          // Utiliser les vraies catégories si disponibles, sinon approximation
+          if (stats.uniqueCategoriesCount !== undefined) {
+            quest.progress = Math.min(4, stats.uniqueCategoriesCount);
+          } else {
+            quest.progress = Math.min(4, Math.floor((stats.gameCategories || 0) / 2));
+          }
           break;
       }
       

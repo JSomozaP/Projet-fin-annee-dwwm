@@ -188,14 +188,27 @@
 
 .section-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.75rem;
   margin-bottom: 1.5rem;
+  
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
   
   h2 {
     margin: 0;
     font-size: 1.5rem;
     font-weight: 600;
+  }
+  
+  .section-subtitle {
+    margin: 0;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: normal;
   }
   
   .chart-controls, .view-toggle {
@@ -226,6 +239,27 @@
         color: #ffffff;
         border-color: rgba(255, 255, 255, 0.4);
       }
+    }
+  }
+}
+
+// Légende du graphique
+.chart-legend {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.8);
+    
+    .legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
     }
   }
 }

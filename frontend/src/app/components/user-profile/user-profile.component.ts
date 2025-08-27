@@ -63,8 +63,8 @@ interface Badge {
         <!-- Progression XP -->
         <div class="xp-section">
           <div class="xp-info">
-            <span class="current-xp">{{ userProfile?.currentXP }} XP</span>
-            <span class="next-level">Niveau {{ (userProfile?.level || 0) + 1 }} : {{ userProfile?.nextLevelXP }} XP</span>
+            <span class="current-xp">{{ userProfile?.currentXP }} / {{ userProfile?.nextLevelXP }} XP</span>
+            <span class="next-level">Vers le niveau {{ (userProfile?.level || 0) + 1 }}</span>
           </div>
           <div class="xp-bar">
             <div class="xp-fill" [style.width.%]="getXPPercentage()"></div>
@@ -667,8 +667,12 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   }
 
   getXPPercentage(): number {
-    if (!this.userProfile) return 0;
-    return (this.userProfile.currentXP / this.userProfile.nextLevelXP) * 100;
+    if (!this.userProfile || !this.userProfile.nextLevelXP) return 0;
+    
+    const percentage = (this.userProfile.currentXP / this.userProfile.nextLevelXP) * 100;
+    
+    // Limiter le pourcentage à 100% maximum pour éviter la jauge qui déborde
+    return Math.min(percentage, 100);
   }
 
   getXPBoostPercentage(): number {
@@ -726,7 +730,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
         }
       }).toPromise();
 
-      return response.favorites || [];
+      return response.data || [];
     } catch (error) {
       console.error('❌ Erreur lors de la récupération des favoris:', error);
       return [];

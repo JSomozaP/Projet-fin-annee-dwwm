@@ -5,6 +5,7 @@ const Favorite = require('./Favorite');
 const Quest = require('./Quest');
 const UserQuest = require('./UserQuest');
 const UserProgression = require('./UserProgression');
+const UserQuestProgress = require('./UserQuestProgress');
 
 module.exports = {
   User,
@@ -12,5 +13,6 @@ module.exports = {
   Favorite,
   Quest,
   UserQuest,
-  UserProgression
+  UserProgression,
+  UserQuestProgress
 };

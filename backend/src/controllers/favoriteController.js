@@ -1,8 +1,28 @@
 const { Favorite } = require('../models');
+const UserProgression = require('../models/UserProgression');
 const twitchService = require('../services/twitchService');
 const questService = require('../services/questService');
 
-class FavoriteController {
+// Méthode helper pour mettre à jour le compteur de favoris dans user_progressions
+async function updateFavoritesCount(userId) {
+  try {
+    const favoriteCount = await Favorite.countByUserId(userId);
+    // console.log(`📊 Mise à jour compteur favoris pour ${userId}: ${favoriteCount}`);
+    
+    const userProgression = await UserProgression.findOne({ where: { userId } });
+    if (userProgression) {
+      await userProgression.update({
+        favoritesAdded: favoriteCount
+      });
+      // console.log(`✅ Compteur favoris mis à jour: ${favoriteCount}`);
+    }
+  } catch (error) {
+    console.error('❌ Erreur mise à jour compteur favoris:', error);
+  }
+}
+
+const favoriteController = {
+
   // Ajouter un stream aux favoris
   async addFavorite(req, res) {
     try {
@@ -16,13 +36,11 @@ class FavoriteController {
         });
       }
 
-      console.log('➕ Ajout aux favoris:', {
-        userId,
-        streamerId,
-        streamerName,
-        gameId,
-        gameName
-      });
+      // console.log('➕ Ajout aux favoris:', {
+      //   userId,
+      //   streamerId,
+      //   displayName
+      // });
 
       // Vérifier si déjà en favoris
       const existingFavorite = await Favorite.findByUserAndStreamer(userId, streamerId);
@@ -66,6 +84,9 @@ class FavoriteController {
         console.log('⚠️ Erreur tracking quête (non bloquant):', questError.message);
       }
 
+      // 📊 Mettre à jour le compteur de favoris dans user_progressions
+      await updateFavoritesCount(userId);
+
       res.status(201).json({
         success: true,
         data: favorite,
@@ -79,7 +100,7 @@ class FavoriteController {
         error: error.message
       });
     }
-  }
+  },
 
   // Supprimer un stream des favoris
   async removeFavorite(req, res) {
@@ -98,6 +119,9 @@ class FavoriteController {
         });
       }
 
+      // 📊 Mettre à jour le compteur de favoris dans user_progressions
+      await updateFavoritesCount(userId);
+
       res.json({
         success: true,
         message: 'Streamer retiré des favoris avec succès'
@@ -110,23 +134,23 @@ class FavoriteController {
         error: error.message
       });
     }
-  }
+  },
 
   // Obtenir tous les favoris d'un utilisateur
   async getFavorites(req, res) {
     try {
       const userId = req.user.id;
-      const { page = 1, limit = 20, checkLive = 'false' } = req.query;
+      const { page = 1, limit = null, checkLive = 'false' } = req.query; // Pas de limite par défaut
 
       console.log('📋 Récupération des favoris:', { 
         userId, 
         page: parseInt(page), 
-        limit: parseInt(limit),
+        limit: limit ? parseInt(limit) : 'aucune limite',
         checkLive: checkLive === 'true'
       });
 
       const favorites = await Favorite.findByUserId(userId, {
-        limit: parseInt(limit)
+        limit: limit ? parseInt(limit) : null // Aucune limite si non spécifiée
       });
 
       // Enrichir les favoris avec les informations complètes du streamer
@@ -212,7 +236,7 @@ class FavoriteController {
         error: error.message
       });
     }
-  }
+  },
 
   // Vérifier si un streamer est dans les favoris
   async checkFavorite(req, res) {
@@ -237,7 +261,7 @@ class FavoriteController {
         error: error.message
       });
     }
-  }
+  },
 
   // Obtenir les streamers favoris actuellement en live
   async getLiveFavorites(req, res) {
@@ -279,7 +303,7 @@ class FavoriteController {
         error: error.message
       });
     }
-  }
+  },
 
   // Obtenir les statistiques des favoris
   async getFavoriteStats(req, res) {
@@ -302,6 +326,6 @@ class FavoriteController {
       });
     }
   }
-}
+};
 
-module.exports = new FavoriteController();
+module.exports = favoriteController;

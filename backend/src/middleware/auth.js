@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { User } = require('../models');
+const logger = require('../utils/logger');
 
 // Middleware pour vérifier le token JWT
 const authenticateToken = async (req, res, next) => {
@@ -33,7 +34,7 @@ const authenticateToken = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    console.error('Erreur authentification:', error.message);
+    logger.error('Erreur authentification:', error.message);
     return res.status(403).json({ 
       error: 'Token invalide' 
     });
@@ -45,31 +46,18 @@ const optionalAuth = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
-  console.log('🔍 OptionalAuth middleware appelé');
-  console.log('🔍 Authorization header:', authHeader ? 'Présent' : 'Absent');
-  console.log('🔍 Token extrait:', token ? token.substring(0, 20) + '...' : 'Aucun');
-
   if (token) {
     try {
-      console.log('🔓 Tentative de vérification du token...');
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      console.log('✅ Token décodé:', decoded);
-      
       const user = await User.findById(decoded.userId);
-      console.log('👤 Utilisateur trouvé:', user ? `${user.username} (ID: ${user.id})` : 'Aucun');
       
       if (user && user.isConnected) {
         req.user = user;
-        console.log('✅ Utilisateur authentifié avec succès');
-      } else {
-        console.log('⚠️ Utilisateur non connecté ou introuvable');
       }
     } catch (error) {
       // Token invalide mais on continue sans user
-      console.log('❌ Token optionnel invalide:', error.message);
+      // Logs supprimés pour éviter le spam
     }
-  } else {
-    console.log('⚠️ Aucun token fourni');
   }
 
   next();

@@ -71,7 +71,7 @@ interface AnalyticsData {
         </div>
         
         <div class="stat-card stat-level">
-          <div class="stat-icon">�</div>
+          <div class="stat-icon">🏆</div>
           <div class="stat-content">
             <h3>Niveau {{ analytics.level }}</h3>
             <p>Progression</p>
@@ -83,7 +83,7 @@ interface AnalyticsData {
         </div>
         
         <div class="stat-card stat-discoveries">
-          <div class="stat-icon">�</div>
+          <div class="stat-icon">🔍</div>
           <div class="stat-content">
             <h3>{{ analytics.streamsDiscovered }}</h3>
             <p>Streams Découverts</p>
@@ -102,7 +102,7 @@ interface AnalyticsData {
           </div>
           <div class="stat-trend">
             <span class="trend-icon">💝</span>
-            <span class="trend-text">+{{ analytics.monthlyStats.favorites }} ce mois</span>
+            <span class="trend-text">+{{ analytics.monthlyStats.favorites || 0 }} ce mois</span>
           </div>
         </div>
       </div>
@@ -112,7 +112,8 @@ interface AnalyticsData {
         <!-- Graphique de progression -->
         <div class="chart-section">
           <div class="section-header">
-            <h2>📈 Progression Hebdomadaire</h2>
+            <h2>📈 Progression XP par Jour</h2>
+            <p class="section-subtitle">Points d'expérience gagnés chaque jour</p>
             <div class="chart-controls">
               <button 
                 class="control-btn"
@@ -130,13 +131,20 @@ interface AnalyticsData {
               </button>
             </div>
           </div>
+          <div class="chart-legend">
+            <div class="legend-item">
+              <div class="legend-color" style="background: linear-gradient(to top, #4facfe, #00f2fe);"></div>
+              <span>Points XP gagnés</span>
+            </div>
+          </div>
           <div class="progress-chart">
             <div 
               *ngFor="let day of analytics.weeklyProgress" 
               class="progress-bar"
               [style.height.%]="getProgressBarHeight(day.xp)"
+              [title]="day.xp + ' XP gagnés le ' + day.day"
             >
-              <div class="bar-value">{{ day.xp }}</div>
+              <div class="bar-value">{{ day.xp }} XP</div>
               <div class="bar-fill"></div>
               <div class="bar-label">{{ day.day }}</div>
             </div>
@@ -209,9 +217,9 @@ interface AnalyticsData {
           <div class="summary-card favorites">
             <div class="summary-icon">⭐</div>
             <div class="summary-content">
-              <h3>{{ analytics.monthlyStats.favorites }}</h3>
+              <h3>{{ analytics.monthlyStats.favorites || 0 }}</h3>
               <p>Favoris ajoutés</p>
-              <div class="summary-change positive">+{{ Math.round(analytics.monthlyStats.favorites * 0.08) }} vs mois dernier</div>
+              <div class="summary-change positive">+{{ Math.round((analytics.monthlyStats.favorites || 0) * 0.08) }} vs mois dernier</div>
             </div>
           </div>
           <div class="summary-card xp">
@@ -345,10 +353,10 @@ export class PremiumAnalyticsComponent implements OnInit {
     if (this.hasAnalyticsAccess) {
       this.loadAnalyticsData();
       
-      // Rafraîchir les données toutes les 30 secondes pour capturer les nouveaux favoris
+      // Rafraîchir les données toutes les 5 minutes pour capturer les nouveaux favoris
       setInterval(() => {
         this.loadAnalyticsData();
-      }, 30000);
+      }, 300000); // 5 minutes au lieu de 30 secondes
     }
   }
 
@@ -396,21 +404,24 @@ export class PremiumAnalyticsComponent implements OnInit {
             
             // Récupération des vrais favoris depuis l'API
             const realFavorites = await this.getRealFavorites();
-            const favoritesCount = realFavorites ? realFavorites.length : 0;
+            const favoritesCount = realFavorites && realFavorites.length > 0 
+              ? realFavorites.length 
+              : userProgress.favoritesAdded || 0; // Fallback vers la progression
             
             console.log('📈 Données pour analytics:', {
               totalXP: userProgress.totalXP,
               level: userProgress.level,
               streamsDiscovered: userProgress.streamsDiscovered,
-              favoritesFromAPI: favoritesCount,
-              favoritesFromProgression: userProgress.favoritesAdded
+              favoritesFromAPI: realFavorites ? realFavorites.length : 0,
+              favoritesFromProgression: userProgress.favoritesAdded,
+              favoritesCountFinal: favoritesCount
             });
             
             this.analytics = {
               totalXP: userProgress.totalXP || 0,
               level: userProgress.level || 1,
               streamsDiscovered: userProgress.streamsDiscovered || 0,
-              favoritesAdded: favoritesCount, // Utiliser les vrais favoris
+              favoritesAdded: favoritesCount, // Utiliser les vrais favoris avec fallback
               questsCompleted: 0, // TODO: Ajouter tracking des quêtes
               dailyStreak: 0, // TODO: Implémenter le calcul de streak
               averageSessionTime: 0, // TODO: Ajouter cette métrique
@@ -431,9 +442,9 @@ export class PremiumAnalyticsComponent implements OnInit {
               
               // Stats mensuelles basées sur les vraies données
               monthlyStats: {
-                discoveries: Math.floor(userProgress.streamsDiscovered * 0.3), // Estimation du mois
-                favorites: Math.floor(favoritesCount * 0.2), // Estimation du mois
-                xpGained: Math.floor(userProgress.totalXP * 0.15), // Estimation du mois
+                discoveries: Math.floor(userProgress.streamsDiscovered * 0.3) || 0, // Estimation du mois
+                favorites: Math.floor((favoritesCount || 0) * 0.2) || 0, // Estimation du mois avec protection
+                xpGained: Math.floor(userProgress.totalXP * 0.15) || 0, // Estimation du mois
                 questsCompleted: 0 // TODO: Ajouter tracking des quêtes mensuelles
               },
               

@@ -263,6 +263,36 @@ const questController = {
         error: 'Erreur lors du recalcul du niveau'
       });
     }
+  },
+
+  // GET /api/quests/progress-data - Données de progression des quêtes conditionnelles
+  async getQuestProgressData(req, res) {
+    try {
+      const userId = req.user?.id || req.query.userId;
+      
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Utilisateur non authentifié'
+        });
+      }
+
+      console.log(`📊 Récupération des données de progression pour ${userId}`);
+      
+      const progressData = await questService.getQuestProgressData(userId);
+      
+      res.json({
+        success: true,
+        data: progressData
+      });
+      
+    } catch (error) {
+      console.error('❌ Erreur récupération données de progression:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Erreur lors de la récupération des données de progression'
+      });
+    }
   }
 };
 

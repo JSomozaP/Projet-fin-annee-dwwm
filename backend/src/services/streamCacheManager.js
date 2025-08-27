@@ -27,7 +27,7 @@ class StreamCacheManager {
     const isExpired = !lastRefresh || (Date.now() - lastRefresh > this.refreshInterval);
     
     if (pool && !isExpired && pool.length > 0) {
-      console.log(`🎯 Utilisation du cache pour ${poolKey}: ${pool.length} streams disponibles`);
+      // console.log(`🎯 Utilisation du cache pour ${poolKey}: ${pool.length} streams disponibles`);
       return this.filterStreamsFromPool(pool, filters);
     }
     
@@ -73,7 +73,7 @@ class StreamCacheManager {
     this.streamPools.set(poolKey, uniqueStreams);
     this.lastRefresh.set(poolKey, Date.now());
     
-    console.log(`💾 Cache mis à jour pour ${poolKey}: ${uniqueStreams.length} streams`);
+    // console.log(`💾 Cache mis à jour pour ${poolKey}: ${uniqueStreams.length} streams`);
   }
 
   // Nettoyer les anciens caches

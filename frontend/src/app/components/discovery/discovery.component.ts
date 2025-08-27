@@ -110,14 +110,8 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
             // 📝 Marquer automatiquement le stream comme vu
             this.streamService.markStreamAsViewed(this.currentStream);
             
-            // 🎯 Tracker la découverte du stream pour les quêtes
+            // Le tracking est déjà fait côté backend
             if (this.isAuthenticated) {
-              this.progressionService.trackStreamDiscovery(
-                this.currentStream.streamerId,
-                this.currentStream.streamerName,
-                this.currentStream.nbViewers,
-                this.currentStream.jeu
-              );
               this.checkIfFavorite();
             }
           } else {
@@ -410,17 +404,10 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
             // 📝 Marquer automatiquement le stream comme vu
             this.streamService.markStreamAsViewed(this.currentStream);
             
-            // 🎯 Tracker la découverte du stream pour les quêtes
+            // Le tracking est déjà fait côté backend
             if (this.isAuthenticated) {
-              this.progressionService.trackStreamDiscovery(
-                this.currentStream.streamerId,
-                this.currentStream.streamerName,
-                this.currentStream.nbViewers,
-                this.currentStream.jeu
-              );
+              this.checkIfFavorite();
             }
-            
-            this.checkIfFavorite();
           } else {
             this.error = response.error || 'Aucun stream trouvé avec ces critères';
           }
