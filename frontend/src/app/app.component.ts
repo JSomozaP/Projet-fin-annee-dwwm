@@ -1,3 +1,11 @@
+/*
+ * Streamyscovery - Stream Discovery Platform
+ * Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.
+ * 
+ * Plateforme innovante de découverte de streams avec gamification
+ * Projet original développé par Jeremy Somoza - La Plateforme
+ */
+
 import { Component, OnInit, OnDestroy, inject, ViewChild } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';

@@ -1,8 +1,16 @@
+/*
+ * Copyright (c) 2025 Jeremy MARTIN. All rights reserved.
+ * This code is the intellectual property of Jeremy MARTIN.
+ * Unauthorized copying, distribution, or modification is strictly prohibited.
+ */
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { PremiumService, UserTier } from '../../services/premium.service';
 import { UserProgressionService } from '../../services/user-progression.service';
+import { FavoriteService } from '../../services/favorite.service';
+import { HttpClient } from '@angular/common/http';
+import { take } from 'rxjs/operators';
 
 interface AnalyticsData {
   totalXP: number;
@@ -12,8 +20,8 @@ interface AnalyticsData {
   questsCompleted: number;
   dailyStreak: number;
   averageSessionTime: number;
-  topCategories: { name: string; count: number }[];
-  weeklyProgress: { day: string; xp: number }[];
+  topCategories: Array<{name: string, count: number}>;
+  weeklyProgress: Array<{day: string, xp: number}>;
   monthlyStats: {
     discoveries: number;
     favorites: number;
@@ -55,7 +63,6 @@ interface AnalyticsData {
         </div>
       </div>
 
-      <!-- Quick Stats Grid moderne -->
       <!-- Quick Stats Grid moderne -->
       <div class="quick-stats-grid">
         <div class="stat-card stat-xp">
@@ -343,6 +350,7 @@ export class PremiumAnalyticsComponent implements OnInit {
   constructor(
     private premiumService: PremiumService,
     private userProgressionService: UserProgressionService,
+    private favoriteService: FavoriteService,
     private http: HttpClient
   ) {
     this.currentTier = this.premiumService.getCurrentTier();
@@ -353,7 +361,7 @@ export class PremiumAnalyticsComponent implements OnInit {
     if (this.hasAnalyticsAccess) {
       this.loadAnalyticsData();
       
-      // Rafraîchir les données toutes les 5 minutes pour capturer les nouveaux favoris
+      // Rafraîchir les données toutes les 5 minutes au lieu de 30 secondes pour réduire la charge
       setInterval(() => {
         this.loadAnalyticsData();
       }, 300000); // 5 minutes au lieu de 30 secondes
@@ -402,7 +410,7 @@ export class PremiumAnalyticsComponent implements OnInit {
             const sessionData = this.userProgressionService.getSessionData();
             console.log('📊 Session data:', sessionData);
             
-            // Récupération des vrais favoris depuis l'API
+            // Récupération des vrais favoris depuis le service
             const realFavorites = await this.getRealFavorites();
             const favoritesCount = realFavorites && realFavorites.length > 0 
               ? realFavorites.length 
@@ -451,56 +459,44 @@ export class PremiumAnalyticsComponent implements OnInit {
               // Achievements basés sur les vraies données
               achievements: this.generateRealisticAchievements(userProgress)
             };
-
-            console.log('✅ Analytics réelles chargées avec succès:', this.analytics);
-            console.log('🔍 Session data:', sessionData);
-            console.log('❤️ Favoris réels:', realFavorites);
+            
+            console.log('🎯 Analytics finales chargées:', this.analytics);
           } else {
-            console.warn('⚠️ Aucune donnée de progression trouvée');
+            console.warn('⚠️ Pas de données utilisateur trouvées, chargement fallback');
             this.loadFallbackData();
           }
         },
         error: (error) => {
-          console.error('❌ Erreur lors de la récupération de la progression:', error);
-          console.log('🔄 Chargement des données de fallback après erreur');
+          console.error('❌ Erreur lors du chargement des données utilisateur:', error);
           this.loadFallbackData();
         }
       });
-      
-    } catch (error) {
-      console.error('❌ Erreur lors du chargement des analytics:', error);
+    } catch (error: any) {
+      console.error('❌ Erreur générale loadAnalyticsData:', error);
       this.loadFallbackData();
     }
   }
 
   private async getRealFavorites(): Promise<any[]> {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.log('❌ Pas de token trouvé pour les favoris');
-        return [];
-      }
-
-      console.log('🔍 Tentative de récupération des favoris...');
-      const response = await this.http.get<any>('http://localhost:3000/api/favorites', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      }).toPromise();
-
-      console.log('✅ Réponse API favoris complète:', response);
-      const favorites = response?.favorites || response || [];
-      console.log('❤️ Favoris extraits:', favorites);
-      console.log('📊 Nombre de favoris:', favorites.length);
+      // Utiliser le service favoris au lieu d'un appel direct
+      console.log('🔍 Récupération des favoris via FavoriteService...');
       
-      return favorites;
+      return new Promise((resolve) => {
+        this.favoriteService.favorites$.pipe(take(1)).subscribe({
+          next: (favorites) => {
+            console.log('✅ Favoris récupérés via observable:', favorites.length);
+            resolve(favorites);
+          },
+          error: (error) => {
+            console.error('❌ Erreur récupération favoris via service:', error);
+            resolve([]); // Retourner un tableau vide en cas d'erreur
+          }
+        });
+      });
+      
     } catch (error: any) {
       console.error('❌ Erreur lors de la récupération des favoris:', error);
-      console.error('❌ Détails de l\'erreur:', {
-        status: error?.status,
-        message: error?.message,
-        url: error?.url
-      });
       return [];
     }
   }
@@ -606,7 +602,7 @@ export class PremiumAnalyticsComponent implements OnInit {
 
   getProgressBarHeight(xp: number): number {
     const maxXP = Math.max(...this.analytics.weeklyProgress.map(p => p.xp));
-    return (xp / maxXP) * 100;
+    return maxXP > 0 ? (xp / maxXP) * 100 : 0;
   }
 
   getCategoryColor(index: number): string {
@@ -622,12 +618,21 @@ export class PremiumAnalyticsComponent implements OnInit {
 
   getCategoryPercentage(count: number): number {
     const total = this.analytics.topCategories.reduce((sum, cat) => sum + cat.count, 0);
-    return (count / total) * 100;
+    return total > 0 ? (count / total) * 100 : 0;
   }
 
   // Helper pour utiliser Math dans le template
   get Math() {
     return Math;
+  }
+
+  getWeeklyGoal(): number {
+    return (this.analytics.level || 1) * 100;
+  }
+
+  getProgressPercentage(xpGained: number): number {
+    const goal = this.getWeeklyGoal();
+    return Math.min(100, Math.round((xpGained / goal) * 100));
   }
 
   // Méthodes d'interactivité
@@ -720,7 +725,7 @@ export class PremiumAnalyticsComponent implements OnInit {
       discoveries: Math.floor((this.analytics.streamsDiscovered * 0.3) * multiplier),
       favorites: Math.floor((this.analytics.favoritesAdded * 0.2) * multiplier),
       xpGained: Math.floor((this.analytics.totalXP * 0.15) * multiplier),
-      questsCompleted: Math.floor(Math.random() * 15 * multiplier) // Moins aléatoire
+      questsCompleted: Math.floor(2 * multiplier) // Base de 2 quêtes par mois
     };
   }
 
@@ -747,7 +752,7 @@ export class PremiumAnalyticsComponent implements OnInit {
   }
 
   redirectToSubscription() {
-    console.log('Redirection vers la page d\'abonnement');
-    // Ici vous pouvez ajouter la logique de redirection
+    // TODO: Implémenter la redirection vers la page d'abonnement
+    console.log('🔄 Redirection vers la page d\'abonnement');
   }
 }

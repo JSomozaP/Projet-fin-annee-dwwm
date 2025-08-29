@@ -1,7 +1,10 @@
 {
   "name": "streamyscovery-backend",
   "version": "1.0.0",
-  "description": "Backend API pour Streamyscovery",
+  "description": "Streamyscovery Backend - API pour plateforme de découverte de streams",
+  "author": "Jeremy Somoza",
+  "license": "Proprietary",
+  "copyright": "Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

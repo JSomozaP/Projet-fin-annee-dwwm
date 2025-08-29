@@ -1,3 +1,10 @@
+/*
+ * Streamyscovery - Contrôleur de découverte de streams
+ * Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.
+ * 
+ * Algorithme de découverte intelligente et recommandations
+ */
+
 const twitchService = require('../services/twitchService');
 const questService = require('../services/questService');
 

@@ -1,3 +1,12 @@
+/*
+ * Streamyscovery Backend - Stream Discovery Platform API
+ * Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.
+ * 
+ * Serveur backend pour la plateforme de découverte de streams
+ * Architecture Node.js/Express/MySQL
+ * Auteur : Jeremy Somoza - La Plateforme
+ */
+
 const express = require('express');
 const cors = require('cors');
 const { testConnection } = require('./src/config/database');

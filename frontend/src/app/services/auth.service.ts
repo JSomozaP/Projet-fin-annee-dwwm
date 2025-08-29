@@ -1,3 +1,8 @@
+/*
+ * Streamyscovery - Service d'authentification
+ * Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.
+ */
+
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';

@@ -1,161 +1,206 @@
-<div class="analytics-container">
-  <!-- Access pour VIP et Legendary uniquement -->
-  <div *ngIf="hasAccess; else accessDenied">
-    
-    <!-- Header avec titre et badge -->
-    <div class="analytics-header">
-      <h1 class="title">🚀 Analytique Premium</h1>
-      <div class="tier-badge" 
-           [class.badge-vip]="userTier === 'vip'"
-           [class.badge-legendary]="userTier === 'legendary'">
-        {{ userTier === 'legendary' ? '⭐ LEGENDARY' : '👑 VIP' }}
-      </div>
+<div class="premium-analytics-container">
+  <!-- Header -->
+  <div class="analytics-header">
+    <div class="header-content">
+      <h1>📊 Analytics Premium</h1>
+      <div class="upgrade-badge">Upgrade</div>
     </div>
-
-    <!-- Statistiques rapides -->
-    <div class="quick-stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon">📊</div>
-        <div class="stat-content">
-          <h3>{{ analyticsData.totalStreamsWatched }}</h3>
-          <p>Streams regardés</p>
-        </div>
-      </div>
-      
-      <div class="stat-card">
-        <div class="stat-icon">⏱️</div>
-        <div class="stat-content">
-          <h3>{{ analyticsData.totalWatchTime }}h</h3>
-          <p>Temps de visionnage</p>
-        </div>
-      </div>
-      
-      <div class="stat-card">
-        <div class="stat-icon">🎯</div>
-        <div class="stat-content">
-          <h3>{{ analyticsData.completedQuests }}</h3>
-          <p>Quêtes complétées</p>
-        </div>
-      </div>
-      
-      <div class="stat-card">
-        <div class="stat-icon">⭐</div>
-        <div class="stat-content">
-          <h3>{{ analyticsData.totalXP | number }}</h3>
-          <p>XP Total</p>
-        </div>
-      </div>
-      
-      <div class="stat-card" *ngIf="userTier === 'legendary'">
-        <div class="stat-icon">🏆</div>
-        <div class="stat-content">
-          <h3>{{ analyticsData.achievementsUnlocked }}</h3>
-          <p>Achievements</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Analytiques détaillées -->
-    <div class="detailed-analytics">
-      
-      <!-- Graphique de progression -->
-      <div class="chart-section">
-        <h2>📈 Progression des 7 derniers jours</h2>
-        <div class="progress-chart">
-          <div class="progress-bar" 
-               *ngFor="let day of analyticsData.weeklyProgress; let i = index"
-               [style.height.px]="day.value * 2">
-            <div class="bar-value">{{ day.value }}</div>
-            <div class="bar-label">{{ day.day }}</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Catégories préférées -->
-      <div class="categories-section">
-        <h2>🎮 Catégories favorites</h2>
-        <div class="categories-list">
-          <div class="category-item" 
-               *ngFor="let category of analyticsData.topCategories; let i = index">
-            <div class="category-rank">{{ i + 1 }}</div>
-            <div class="category-name">{{ category.name }}</div>
-            <div class="category-count">{{ category.count }}h</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Résumé mensuel -->
-    <div class="monthly-summary">
-      <h2>📅 Résumé du mois</h2>
-      <div class="summary-grid">
-        <div class="summary-item">
-          <strong>{{ analyticsData.monthlyStats.streamsDiscovered }}</strong>
-          <span>Nouveaux streams découverts</span>
-        </div>
-        <div class="summary-item">
-          <strong>{{ analyticsData.monthlyStats.averageSessionTime }}h</strong>
-          <span>Durée moyenne de session</span>
-        </div>
-        <div class="summary-item">
-          <strong>{{ analyticsData.monthlyStats.questsCompleted }}</strong>
-          <span>Quêtes terminées</span>
-        </div>
-        <div class="summary-item">
-          <strong>{{ analyticsData.monthlyStats.xpGained | number }}</strong>
-          <span>XP gagné ce mois</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Fonctionnalités Premium -->
-    <div class="premium-showcase">
-      <h2>✨ Avantages {{ userTier === 'legendary' ? 'Legendary' : 'VIP' }}</h2>
-      <div class="features-grid">
-        <div class="feature-item">
-          <div class="feature-check">✅</div>
-          <div class="feature-text">Analytiques détaillées</div>
-        </div>
-        <div class="feature-item">
-          <div class="feature-check">✅</div>
-          <div class="feature-text">Boost XP x{{ userTier === 'legendary' ? '3' : '2' }}</div>
-        </div>
-        <div class="feature-item">
-          <div class="feature-check">✅</div>
-          <div class="feature-text">Quêtes bonus quotidiennes</div>
-        </div>
-        <div class="feature-item" *ngIf="userTier === 'legendary'">
-          <div class="feature-check">✅</div>
-          <div class="feature-text">Accès anticipé aux nouvelles fonctionnalités</div>
-        </div>
-        <div class="feature-item" *ngIf="userTier === 'legendary'">
-          <div class="feature-check">✅</div>
-          <div class="feature-text">Support prioritaire</div>
-        </div>
-        <div class="feature-item" *ngIf="userTier === 'legendary'">
-          <div class="feature-check">✅</div>
-          <div class="feature-text">Badge Legendary exclusif</div>
-        </div>
-      </div>
-    </div>
-
+    <p>Découvrez vos statistiques détaillées et votre progression</p>
   </div>
 
-  <!-- Template d'accès refusé -->
-  <ng-template #accessDenied>
-    <div class="access-denied">
-      <div class="denied-content">
-        <div class="denied-icon">🔒</div>
-        <h2>Accès Premium Requis</h2>
-        <p>
-          Les analytiques avancées sont réservées aux membres VIP et Legendary.
-          <br>
-          Débloquez des insights détaillés sur votre progression et vos habitudes de visionnage !
-        </p>
-        <button class="upgrade-button" (click)="navigateToUpgrade()">
-          🚀 Passer Premium
-        </button>
+  <!-- Main Stats Cards -->
+  <div class="main-stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">⚡</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ analytics?.totalXP || 0 | number }}</div>
+        <div class="stat-label">XP Total</div>
+        <div class="stat-change positive">+{{ analytics?.weeklyXpGain || 0 }} cette semaine</div>
       </div>
     </div>
-  </ng-template>
+
+    <div class="stat-card">
+      <div class="stat-icon">🎯</div>
+      <div class="stat-content">
+        <div class="stat-value">Niveau {{ analytics?.level || 1 }}</div>
+        <div class="stat-label">Progression</div>
+        <div class="stat-change positive">+{{ analytics?.currentXP || 0 }}/{{ analytics?.nextLevelXP || 100 }} XP</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">🔍</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ analytics?.streamsDiscovered || 0 }}</div>
+        <div class="stat-label">Streams découverts</div>
+        <div class="stat-change positive">+{{ analytics?.weeklyDiscovered || 0 }} cette semaine</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">❤️</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ analytics?.favoritesAdded || 0 }}</div>
+        <div class="stat-label">Favoris ajoutés</div>
+        <div class="stat-change positive">+{{ analytics?.weeklyFavorites || 0 }} cette semaine</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress Section -->
+  <div class="analytics-grid">
+    <!-- Weekly Progress Chart -->
+    <div class="analytics-card chart-card">
+      <div class="card-header">
+        <h3>📊 Progression XP par jour</h3>
+        <div class="period-selector">
+          <button class="period-btn active">7J</button>
+          <button class="period-btn">30J</button>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas #weeklyChart class="chart"></canvas>
+        <!-- Labels des jours -->
+        <div class="chart-labels">
+          <span *ngFor="let day of weeklyProgress" class="chart-label">{{ day.day }}</span>
+        </div>
+        <!-- Données au survol -->
+        <div class="chart-values">
+          <div *ngFor="let day of weeklyProgress" class="chart-value" 
+               [style.height.%]="getChartHeight(day.xp)">
+            <span class="value-label">{{ day.xp }} XP</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Categories -->
+    <div class="analytics-card">
+      <div class="card-header">
+        <h3>🎮 Catégories Préférées</h3>
+        <span class="percentage">100%</span>
+      </div>
+      <div class="categories-list">
+        <div *ngFor="let category of topCategories; let i = index" class="category-item">
+          <div class="category-icon">🎮</div>
+          <div class="category-info">
+            <span class="category-name">{{ category.name }}</span>
+            <div class="category-bar">
+              <div class="category-progress" [style.width.%]="category.percentage"></div>
+            </div>
+          </div>
+          <span class="category-count">{{ category.count }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monthly Summary -->
+  <div class="analytics-card monthly-summary">
+    <div class="card-header">
+      <h3>🏆 Résumé du Mois</h3>
+      <div class="month-selector">
+        <button class="month-btn">← Juil.</button>
+        <span class="current-month">Août 2025</span>
+        <button class="month-btn">Sept. →</button>
+      </div>
+    </div>
+    <div class="summary-grid">
+      <div class="summary-item">
+        <div class="summary-icon">🔍</div>
+        <div class="summary-content">
+          <div class="summary-value">{{ monthlyStats?.streamsDiscovered || 0 }}</div>
+          <div class="summary-label">Streams découverts</div>
+          <div class="summary-subtitle">+{{ monthlyStats?.streamsIncrease || 0 }}% vs mois dernier</div>
+        </div>
+      </div>
+
+      <div class="summary-item">
+        <div class="summary-icon">⭐</div>
+        <div class="summary-content">
+          <div class="summary-value">{{ monthlyStats?.questsCompleted || 0 }}</div>
+          <div class="summary-label">Quêtes terminées</div>
+          <div class="summary-subtitle">+{{ monthlyStats?.questsIncrease || 0 }}% vs mois dernier</div>
+        </div>
+      </div>
+
+      <div class="summary-item">
+        <div class="summary-icon">🎯</div>
+        <div class="summary-content">
+          <div class="summary-value">{{ monthlyStats?.xpGained || 0 | number }}</div>
+          <div class="summary-label">XP gagnés</div>
+          <div class="summary-subtitle">+{{ monthlyStats?.xpIncrease || 0 }}% vs mois dernier</div>
+        </div>
+      </div>
+
+      <div class="summary-item">
+        <div class="summary-icon">🏅</div>
+        <div class="summary-content">
+          <div class="summary-value">{{ monthlyStats?.badgesEarned || 0 }}</div>
+          <div class="summary-label">Badges obtenus</div>
+          <div class="summary-subtitle">+{{ monthlyStats?.badgesIncrease || 0 }}% vs mois dernier</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Achievements -->
+  <div class="analytics-card achievements">
+    <div class="card-header">
+      <h3>🏆 Succès Récents</h3>
+      <span class="achievements-count">{{ recentAchievements?.length || 0 }} succès</span>
+    </div>
+    <div class="achievements-list">
+      <div *ngFor="let achievement of recentAchievements" class="achievement-item">
+        <div class="achievement-icon">{{ achievement.icon }}</div>
+        <div class="achievement-info">
+          <h4>{{ achievement.title }}</h4>
+          <p>{{ achievement.description }}</p>
+        </div>
+        <div class="achievement-status">
+          <span class="status-icon">✅</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Premium Features -->
+  <div class="analytics-card premium-features">
+    <div class="card-header">
+      <h3>✨ Fonctionnalités Premium Actives</h3>
+      <span class="premium-badge">Légendaire</span>
+    </div>
+    <div class="features-grid">
+      <div class="feature-item active">
+        <span class="feature-icon">✅</span>
+        <span class="feature-text">Boost XP +15%</span>
+      </div>
+      <div class="feature-item active">
+        <span class="feature-icon">✅</span>
+        <span class="feature-text">10 quêtes quotidiennes (+3)</span>
+      </div>
+      <div class="feature-item active">
+        <span class="feature-icon">✅</span>
+        <span class="feature-text">7 quêtes hebdomadaires (+2)</span>
+      </div>
+      <div class="feature-item active">
+        <span class="feature-icon">✅</span>
+        <span class="feature-text">6 quêtes mensuelles (+3)</span>
+      </div>
+      <div class="feature-item active">
+        <span class="feature-icon">✅</span>
+        <span class="feature-text">Analytics avancées</span>
+      </div>
+      <div class="feature-item active">
+        <span class="feature-icon">✅</span>
+        <span class="feature-text">Badge utilisateur personnalisé</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <p>Chargement des analytics...</p>
+  </div>
 </div>

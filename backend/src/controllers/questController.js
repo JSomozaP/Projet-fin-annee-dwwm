@@ -265,7 +265,7 @@ const questController = {
     }
   },
 
-  // GET /api/quests/progress-data - Données de progression des quêtes conditionnelles
+  // GET /api/quests/progress - Données de progression pour analytics
   async getQuestProgressData(req, res) {
     try {
       const userId = req.user?.id || req.query.userId;
@@ -277,7 +277,7 @@ const questController = {
         });
       }
 
-      console.log(`📊 Récupération des données de progression pour ${userId}`);
+      console.log(`📊 Récupération des données de progression pour userId: ${userId}`);
       
       const progressData = await questService.getQuestProgressData(userId);
       
@@ -287,7 +287,38 @@ const questController = {
       });
       
     } catch (error) {
-      console.error('❌ Erreur récupération données de progression:', error);
+      console.error('❌ Erreur récupération données progression:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Erreur lors de la récupération des données de progression'
+      });
+    }
+  },
+
+  // GET /api/quests/progress-data - Données de progression des quêtes
+  async getProgressData(req, res) {
+    try {
+      const userId = req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Utilisateur non authentifié'
+        });
+      }
+
+      console.log(`📊 getProgressData appelé pour userId: ${userId}`);
+      
+      // Récupérer les données de progression depuis le service
+      const progressData = await questService.getQuestProgressData(userId);
+      
+      res.json({
+        success: true,
+        data: progressData
+      });
+      
+    } catch (error) {
+      console.error('❌ Erreur getProgressData:', error);
       res.status(500).json({
         success: false,
         error: 'Erreur lors de la récupération des données de progression'

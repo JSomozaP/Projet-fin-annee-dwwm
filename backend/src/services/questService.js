@@ -1,3 +1,11 @@
+/*
+ * Streamyscovery - Service de gamification et quêtes
+ * Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.
+ * 
+ * Système de progression XP/Niveaux (200 niveaux)
+ * Gestion des quêtes et récompenses
+ */
+
 const Quest = require('../models/Quest');
 const UserQuest = require('../models/UserQuest');
 const UserProgression = require('../models/UserProgression');
@@ -351,6 +359,77 @@ class QuestService {
         streamsDiscovered: 0,
         favoritesAdded: 0,
         questsCompleted: 0
+      };
+    }
+  }
+
+  // Obtenir les données de progression pour les analytics
+  async getQuestProgressData(userId) {
+    try {
+      console.log(`📊 Récupération des données de progression pour userId: ${userId}`);
+      
+      let userProgression = await UserProgression.findOne({
+        where: { userId }
+      });
+      
+      if (!userProgression) {
+        console.log(`🆕 Création nouvelle progression pour userId: ${userId}`);
+        userProgression = await UserProgression.create({ userId });
+      }
+      
+      // Calculer les informations de niveau basées sur l'XP total
+      const levelInfo = this.calculateLevel(userProgression.totalXP || 0);
+      
+      const progressData = {
+        // Progression générale
+        level: levelInfo.level,
+        totalXP: levelInfo.totalXP,
+        currentXP: levelInfo.currentXP,
+        nextLevelXP: levelInfo.nextLevelXP,
+        
+        // Statistiques de découverte
+        streamsDiscovered: userProgression.streamsDiscovered || 0,
+        favoritesAdded: userProgression.favoritesAdded || 0,
+        questsCompleted: userProgression.questsCompleted || 0,
+        
+        // Données pour analytics
+        weeklyXpGain: userProgression.weeklyXpGain || 0,
+        weeklyDiscovered: userProgression.weeklyDiscovered || 0,
+        weeklyFavorites: userProgression.weeklyFavorites || 0,
+        
+        // Badges et titres
+        badges: userProgression.badges || [],
+        titles: userProgression.titles || [],
+        
+        // Progression en pourcentage dans le niveau actuel
+        progressPercentage: levelInfo.nextLevelXP > 0 ? 
+          Math.round((levelInfo.currentXP / levelInfo.nextLevelXP) * 100) : 100
+      };
+      
+      console.log(`✅ Données de progression récupérées:`, {
+        level: progressData.level,
+        totalXP: progressData.totalXP,
+        streamsDiscovered: progressData.streamsDiscovered,
+        favoritesAdded: progressData.favoritesAdded
+      });
+      
+      return progressData;
+    } catch (error) {
+      console.error('❌ Erreur getQuestProgressData:', error);
+      return {
+        level: 1,
+        totalXP: 0,
+        currentXP: 0,
+        nextLevelXP: 100,
+        streamsDiscovered: 0,
+        favoritesAdded: 0,
+        questsCompleted: 0,
+        weeklyXpGain: 0,
+        weeklyDiscovered: 0,
+        weeklyFavorites: 0,
+        badges: [],
+        titles: [],
+        progressPercentage: 0
       };
     }
   }

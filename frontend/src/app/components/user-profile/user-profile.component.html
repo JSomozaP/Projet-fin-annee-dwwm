@@ -1,0 +1,178 @@
+<div class="profile-container">
+  <!-- MODAL PROFIL UTILISATEUR -->
+  <div class="profile-modal" [class.active]="showProfile" (click)="closeProfile()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">
+          <i class="fas fa-user-circle"></i>
+          Profil Utilisateur
+        </h2>
+        <button class="close-btn" (click)="closeProfile()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body" *ngIf="userProfile">
+        <!-- SECTION UTILISATEUR -->
+        <div class="user-section">
+          <div class="user-info">
+            <div class="avatar-section">
+              <img 
+                [src]="userProfile.avatarUrl || '/assets/default-avatar.png'" 
+                [alt]="userProfile.username"
+                class="user-avatar"
+                (error)="handleAvatarError($event)"
+              >
+              <div class="tier-badge" [ngClass]="'tier-' + subscriptionTier">
+                <span class="tier-emoji">{{ getTierEmoji() }}</span>
+                <span class="tier-name">{{ getTierDisplayName() }}</span>
+              </div>
+            </div>
+            <div class="user-details">
+              <h3 class="username">{{ userProfile.username }}</h3>
+              <p class="user-title">{{ userProfile.currentTitle || 'Explorateur' }}</p>
+              <div class="connection-status">
+                <i class="fas fa-circle status-online"></i>
+                <span>Connecté via Twitch</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION PROGRESSION -->
+        <div class="progression-section">
+          <div class="level-display">
+            <div class="level-info">
+              <span class="level-label">Niveau</span>
+              <span class="level-number">{{ userProfile.level }}</span>
+              <span class="level-max">/200</span>
+            </div>
+            <div class="xp-display">
+              <span class="xp-current">{{ userProfile.currentXP | number }}</span>
+              <span class="xp-separator">/</span>
+              <span class="xp-next">{{ userProfile.nextLevelXP | number }}</span>
+              <span class="xp-label">XP</span>
+            </div>
+          </div>
+          
+          <div class="progress-bar-container">
+            <div class="progress-bar">
+              <div 
+                class="progress-fill" 
+                [style.width.%]="getXPPercentage()"
+              ></div>
+            </div>
+            <span class="progress-percentage">{{ getXPPercentage() }}%</span>
+          </div>
+          
+          <div class="xp-total">
+            <i class="fas fa-star"></i>
+            <span>{{ userProfile.totalXP | number }} XP Total</span>
+          </div>
+        </div>
+
+        <!-- STATISTIQUES -->
+        <div class="stats-section">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="fas fa-tv"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-value">{{ userProfile.streamsDiscovered || 0 }}</span>
+                <span class="stat-label">Streams Découverts</span>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="fas fa-heart"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-value">{{ realFavorites || userProfile.favoritesAdded || 0 }}</span>
+                <span class="stat-label">Favoris Ajoutés</span>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="fas fa-trophy"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-value">{{ userProfile.questsCompleted || 0 }}</span>
+                <span class="stat-label">Quêtes Terminées</span>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="fas fa-calendar-day"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-value">{{ getDaysSinceCreation() }}</span>
+                <span class="stat-label">Jours Connecté</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BADGES ET TITRES -->
+        <div class="achievements-section" *ngIf="userProfile.badges?.length || userProfile.titles?.length">
+          <h3 class="section-title">
+            <i class="fas fa-medal"></i>
+            Achievements
+          </h3>
+          
+          <div class="badges-container" *ngIf="userProfile.badges?.length">
+            <h4>Badges</h4>
+            <div class="badges-grid">
+              <div 
+                *ngFor="let badge of userProfile.badges" 
+                class="badge-item"
+                [title]="badge.description"
+              >
+                <span class="badge-emoji">{{ badge.emoji }}</span>
+                <span class="badge-name">{{ badge.name }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="titles-container" *ngIf="userProfile.titles?.length">
+            <h4>Titres</h4>
+            <div class="titles-grid">
+              <div 
+                *ngFor="let title of userProfile.titles" 
+                class="title-item"
+                [class.active]="title === userProfile.currentTitle"
+              >
+                {{ title }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="actions-section">
+          <button class="action-btn primary" (click)="openAnalytics()">
+            <i class="fas fa-chart-line"></i>
+            Voir Analytics
+          </button>
+          <button class="action-btn secondary" (click)="openQuests()">
+            <i class="fas fa-tasks"></i>
+            Mes Quêtes
+          </button>
+          <button class="action-btn secondary" (click)="openFavorites()">
+            <i class="fas fa-heart"></i>
+            Mes Favoris
+          </button>
+        </div>
+      </div>
+
+      <!-- LOADING STATE -->
+      <div class="loading-state" *ngIf="!userProfile">
+        <div class="spinner"></div>
+        <p>Chargement du profil...</p>
+      </div>
+    </div>
+  </div>
+</div>

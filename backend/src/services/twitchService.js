@@ -1,3 +1,10 @@
+/*
+ * Streamyscovery - Service d'intégration Twitch API
+ * Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.
+ * 
+ * Interface avec l'API Twitch et cache intelligent
+ */
+
 const axios = require('axios');
 const { StreamCache } = require('../models');
 const gameCache = require('./gameCache');
