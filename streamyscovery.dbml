@@ -1,0 +1,274 @@
+Project Streamyscovery {
+  database_type: 'MySQL'
+  Note: 'STREAMYSCOVERY - Plateforme découverte Twitch 2025 - 200 niveaux, 4 tiers premium, 120+ quêtes'
+}
+
+Table utilisateur {
+  id varchar [pk]
+  email varchar [unique, not null]
+  username varchar [not null]
+  avatar_url varchar
+  twitch_id varchar [unique, not null]
+  twitch_token text
+  subscription_tier varchar [default: 'free']
+  date_creation datetime [default: `now()`]
+  is_connected boolean [default: true]
+  preferences json
+  last_login datetime
+  created_at datetime [default: `now()`]
+  updated_at datetime [default: `now()`]
+}
+
+Table user_progressions {
+  id varchar [pk]
+  userId varchar [not null]
+  level integer [default: 1]
+  totalXP integer [default: 0]
+  currentXP integer [default: 0]
+  nextLevelXP integer [default: 1000]
+  badges json [default: '[]']
+  titles json [default: '[]']
+  currentTitle varchar
+  streamsDiscovered integer [default: 0]
+  favoritesAdded integer [default: 0]
+  totalWatchTime integer [default: 0]
+  raidsInitiated integer [default: 0]
+  sponsorshipsCreated integer [default: 0]
+  subscriptionTier varchar [default: 'free']
+  questsCompleted integer [default: 0]
+  subscriptionBonus integer [default: 0]
+  createdAt datetime [default: `now()`]
+  updatedAt datetime [default: `now()`]
+}
+
+Table quests {
+  id varchar [pk]
+  title varchar [not null]
+  description text [not null]
+  type varchar [not null]
+  category varchar [not null]
+  xpReward integer [not null]
+  badgeReward varchar
+  requirement integer [default: 1]
+  conditions json
+  isActive boolean [default: true]
+  premiumOnly boolean [default: false]
+  createdAt datetime [default: `now()`]
+  updatedAt datetime [default: `now()`]
+}
+
+Table user_quests {
+  id varchar [pk]
+  userId varchar [not null]
+  questId varchar [not null]
+  progress integer [default: 0]
+  isCompleted boolean [default: false]
+  completedAt datetime
+  resetDate datetime
+  createdAt datetime [default: `now()`]
+  updatedAt datetime [default: `now()`]
+}
+
+Table chaine_favorite {
+  id varchar [pk]
+  user_id varchar [not null]
+  streamer_id varchar [not null]
+  streamer_name varchar [not null]
+  streamer_avatar text
+  date_ajout datetime [default: `now()`]
+  notification_active boolean [default: true]
+  last_seen_live datetime
+  favorite_category varchar
+}
+
+Table stream_cache {
+  id varchar [pk]
+  streamer_id varchar [unique, not null]
+  streamer_name varchar [not null]
+  display_name varchar
+  title text
+  game_name varchar
+  game_id varchar
+  viewer_count integer [default: 0]
+  language varchar
+  thumbnail_url text
+  profile_image_url text
+  is_live boolean [default: false]
+  started_at datetime
+  tag_ids json [default: '[]']
+  mature boolean [default: false]
+  last_updated datetime [default: `now()`]
+  cache_hits integer [default: 0]
+}
+
+Table game_cache {
+  id varchar [pk]
+  game_id varchar [unique, not null]
+  name varchar [not null]
+  box_art_url text
+  igdb_id varchar
+  category varchar
+  popularity_score integer [default: 0]
+  last_updated datetime [default: `now()`]
+}
+
+Table historique_recherche {
+  id varchar [pk]
+  user_id varchar [not null]
+  search_filters json
+  game_name varchar
+  language varchar
+  min_viewers integer
+  max_viewers integer
+  excluded_ids json [default: '[]']
+  result_streamer_id varchar
+  result_streamer_name varchar
+  result_viewer_count integer
+  date_recherche datetime [default: `now()`]
+  session_duration integer
+  action_taken varchar
+}
+
+Table user_sessions {
+  id varchar [pk]
+  user_id varchar [not null]
+  session_start datetime [default: `now()`]
+  session_end datetime
+  streams_discovered integer [default: 0]
+  favorites_added integer [default: 0]
+  xp_gained integer [default: 0]
+  quests_completed integer [default: 0]
+  pages_visited json [default: '[]']
+  device_info json
+  ip_address varchar
+  user_agent text
+}
+
+Table user_analytics {
+  id varchar [pk]
+  user_id varchar [not null]
+  date_analytics date [not null]
+  streams_discovered_daily integer [default: 0]
+  favorites_added_daily integer [default: 0]
+  xp_gained_daily integer [default: 0]
+  quests_completed_daily integer [default: 0]
+  session_time_daily integer [default: 0]
+  categories_explored json [default: '[]']
+  peak_viewers_discovered integer
+  languages_explored json [default: '[]']
+}
+
+Table subscriptions {
+  id varchar [pk]
+  user_id varchar [not null]
+  subscription_tier varchar [not null]
+  stripe_subscription_id varchar
+  paypal_subscription_id varchar
+  payment_method varchar
+  status varchar [not null]
+  amount decimal(10,2) [default: 0.00]
+  currency varchar(3) [default: 'EUR']
+  billing_cycle varchar [default: 'monthly']
+  current_period_start datetime
+  current_period_end datetime
+  trial_end datetime
+  created_at datetime [default: `now()`]
+  updated_at datetime [default: `now()`]
+  cancelled_at datetime
+}
+
+Table payments {
+  id varchar [pk]
+  subscription_id varchar [not null]
+  user_id varchar [not null]
+  stripe_payment_intent_id varchar
+  paypal_payment_id varchar
+  payment_method varchar [not null]
+  amount decimal(10,2) [not null]
+  currency varchar(3) [default: 'EUR']
+  status varchar [not null]
+  failure_reason text
+  payment_date datetime
+  created_at datetime [default: `now()`]
+  updated_at datetime [default: `now()`]
+}
+
+Table premium_features {
+  id varchar [pk]
+  feature_name varchar [unique, not null]
+  feature_description text
+  required_tier varchar [not null]
+  feature_type varchar [not null]
+  feature_value json
+  is_active boolean [default: true]
+  created_at datetime [default: `now()`]
+  updated_at datetime [default: `now()`]
+}
+
+Table payment_webhooks {
+  id varchar [pk]
+  webhook_id varchar [not null]
+  provider varchar [not null]
+  event_type varchar [not null]
+  event_data json [not null]
+  processed boolean [default: false]
+  processing_error text
+  received_at datetime [default: `now()`]
+  processed_at datetime
+}
+
+Table filtres_recherche {
+  id varchar [pk]
+  user_id varchar [not null]
+  nom_filtre varchar
+  game_filter varchar
+  language_filter varchar
+  min_viewers integer [default: 0]
+  max_viewers integer [default: 999999]
+  excluded_streamers json [default: '[]']
+  date_creation datetime [default: `now()`]
+  is_default boolean [default: false]
+}
+
+Table vote_classement {
+  id varchar [pk]
+  user_id varchar [not null]
+  streamer_id varchar [not null]
+  type_vote varchar [not null]
+  valeur integer [not null]
+  date_vote datetime [default: `now()`]
+}
+
+Table interaction_chat {
+  id varchar [pk]
+  user_id varchar [not null]
+  streamer_id varchar [not null]
+  message text [not null]
+  date_interaction datetime [default: `now()`]
+  type_interaction varchar [default: 'message']
+}
+
+Table follow_sub_action {
+  id varchar [pk]
+  user_id varchar [not null]
+  streamer_id varchar [not null]
+  type_action varchar [not null]
+  date_action datetime [default: `now()`]
+  statut varchar [default: 'success']
+  api_response json
+}
+
+Ref: user_progressions.userId > utilisateur.id [delete: cascade]
+Ref: user_quests.userId > utilisateur.id [delete: cascade]
+Ref: user_quests.questId > quests.id [delete: cascade]
+Ref: chaine_favorite.user_id > utilisateur.id [delete: cascade]
+Ref: historique_recherche.user_id > utilisateur.id [delete: cascade]
+Ref: user_sessions.user_id > utilisateur.id [delete: cascade]
+Ref: user_analytics.user_id > utilisateur.id [delete: cascade]
+Ref: subscriptions.user_id > utilisateur.id [delete: cascade]
+Ref: payments.subscription_id > subscriptions.id [delete: cascade]
+Ref: payments.user_id > utilisateur.id [delete: cascade]
+Ref: filtres_recherche.user_id > utilisateur.id [delete: cascade]
+Ref: vote_classement.user_id > utilisateur.id [delete: cascade]
+Ref: interaction_chat.user_id > utilisateur.id [delete: cascade]
+Ref: follow_sub_action.user_id > utilisateur.id [delete: cascade]

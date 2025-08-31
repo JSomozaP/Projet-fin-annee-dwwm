@@ -1,0 +1,127 @@
+<div class="subscription-container">
+  <!-- Header -->
+  <div class="subscription-header">
+    <h1 class="title">🌟 Streamyscovery Premium</h1>
+    <p class="subtitle">Choisissez le plan qui vous convient pour découvrir encore plus de streamers incroyables</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Chargement des plans d'abonnement...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-container">
+    <div class="error-message">
+      <i class="error-icon">⚠️</i>
+      <p>{{ error }}</p>
+      <button class="retry-button" (click)="ngOnInit()">Réessayer</button>
+    </div>
+  </div>
+
+  <!-- Plans Grid -->
+  <div *ngIf="!loading && !error" class="plans-grid">
+    <div 
+      *ngFor="let plan of plans" 
+      class="plan-card"
+      [class.current-plan]="isCurrentPlan(plan.id)"
+      [class.plan-free]="plan.id === 'free'"
+      [class.plan-premium]="plan.id === 'premium'"
+      [class.plan-vip]="plan.id === 'vip'"
+      [class.plan-legendary]="plan.id === 'legendary'"
+      [class.highlighted]="plan.highlighted"
+    >
+      <!-- Badge -->
+      <div *ngIf="plan.badge" class="plan-badge">{{ plan.badge }}</div>
+      <div *ngIf="isCurrentPlan(plan.id)" class="current-badge">Actuel</div>
+
+      <!-- Plan Header -->
+      <div class="plan-header">
+        <h3 class="plan-name">{{ plan.name }}</h3>
+        <div class="plan-price">
+          <span *ngIf="plan.price === 0" class="price-free">Gratuit</span>
+          <span *ngIf="plan.price > 0" class="price-amount">
+            {{ plan.price }}€
+            <small>/mois</small>
+          </span>
+        </div>
+        <p class="plan-description">{{ plan.description }}</p>
+      </div>
+
+      <!-- Plan Features -->
+      <div class="plan-features">
+        <ul>
+          <li *ngFor="let feature of plan.features" class="feature-item">
+            <i class="feature-icon">✓</i>
+            <span>{{ feature }}</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Plan Action -->
+      <div class="plan-action">
+        <button 
+          class="plan-button"
+          [class.button-current]="isCurrentPlan(plan.id)"
+          [class.button-free]="plan.id === 'free'"
+          [class.button-premium]="plan.id === 'premium'"
+          [class.button-vip]="plan.id === 'vip'"
+          [class.button-legendary]="plan.id === 'legendary'"
+          [disabled]="isButtonDisabled(plan.id)"
+          (click)="selectPlan(plan.id)"
+        >
+          {{ getButtonLabel(plan.id) }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Development Test Buttons -->
+  <div *ngIf="isDevelopment" class="test-buttons-section">
+    <h3>🧪 Boutons de Démonstration - Changement de Plan Instantané</h3>
+    <p class="test-description">
+      Utilisez ces boutons pour tester les différents niveaux d'abonnement sans passer par Stripe.
+      Rechargera automatiquement la page pour afficher les changements.
+    </p>
+    <div class="test-buttons-grid">
+      <button 
+        class="test-btn test-free" 
+        [class.active]="currentPlan === 'free'"
+        (click)="testChangeTier('free')">
+        Test Free (Gratuit)
+      </button>
+      <button 
+        class="test-btn test-premium" 
+        [class.active]="currentPlan === 'premium'"
+        (click)="testChangeTier('premium')">
+        Test Premium (5€/mois)
+      </button>
+      <button 
+        class="test-btn test-vip" 
+        [class.active]="currentPlan === 'vip'"
+        (click)="testChangeTier('vip')">
+        Test VIP (9€/mois)
+      </button>
+      <button 
+        class="test-btn test-legendary" 
+        [class.active]="currentPlan === 'legendary'"
+        (click)="testChangeTier('legendary')">
+        Test Légendaire (15€/mois)
+      </button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="subscription-footer">
+    <p class="footer-text">
+      🔒 Paiements sécurisés par Stripe • 
+      💳 Cartes acceptées • 
+      🔄 Annulation à tout moment
+    </p>
+    <p class="footer-note">
+      Tous les plans incluent l'accès complet aux 200 niveaux de progression. 
+      Les fonctionnalités premium sont des bonus pour améliorer votre expérience.
+    </p>
+  </div>
+</div>

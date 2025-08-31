@@ -1,0 +1,307 @@
+<div class="discovery-container">
+  <!-- Stream Viewer intégré -->
+  <app-stream-viewer 
+    *ngIf="isWatchingStream && currentStream"
+    [streamerName]="currentStream.streamerName"
+    (closeViewer)="closeStreamViewer()">
+  </app-stream-viewer>
+
+  <!-- Interface de découverte (cachée quand on regarde un stream) -->
+  <div *ngIf="!isWatchingStream">
+    <div class="discovery-header">
+      <h1 class="page-title">Découverte de Streams</h1>
+      <p class="page-description">
+        Découvrez de nouveaux streamers et ajoutez-les à vos favoris !
+      </p>
+      
+      <!-- Bouton pour toggle les filtres -->
+      <div class="filter-toggle">
+        <button class="btn btn-primary" (click)="toggleFilters()">
+          <span class="icon-filter">{{ showFilters ? '🔼' : '🔽' }}</span>
+          {{ showFilters ? 'Masquer les filtres' : 'Filtres de recherche' }}
+        </button>
+        
+        <!-- Bouton de test temporaire pour les notifications -->
+                <!-- 
+        <button 
+          (click)="testNotification()" 
+          class="test-btn">
+          🧪 Test Notification
+        </button>
+        -->
+      </div>
+    </div>
+
+    <!-- Filtres de recherche (collapsibles) -->
+    <div class="filters-section" *ngIf="showFilters">
+      <h3 class="filters-title">
+        <span class="icon-filter">🔍</span>
+        Filtres de recherche
+      </h3>
+      
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label for="game-filter">Jeu / Catégorie</label>
+          <div class="autocomplete-container">
+            <input 
+              id="game-filter" 
+              type="text"
+              class="filter-input"
+              placeholder="Tapez pour rechercher un jeu..."
+              [(ngModel)]="filters.game"
+              (input)="onGameInputChange($any($event.target).value)"
+              (blur)="hideGameSuggestions()"
+              (focus)="filters.game && filters.game.length >= 2 ? showGameSuggestions = true : null"
+            >
+            
+            <!-- Suggestions dropdown -->
+            <div class="suggestions-dropdown" *ngIf="showGameSuggestions && gameSuggestions.length > 0">
+              <div 
+                class="suggestion-item" 
+                *ngFor="let game of gameSuggestions"
+                (mousedown)="selectGameSuggestion(game)"
+              >
+                {{ game }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label for="language-filter">Langue</label>
+          <select id="language-filter" class="filter-select" [(ngModel)]="filters.language" (change)="onFilterChange()">
+            <option value="">Toutes les langues</option>
+            <option value="fr">Français</option>
+            <option value="en">Anglais</option>
+            <option value="es">Espagnol</option>
+            <option value="de">Allemand</option>
+            <option value="it">Italien</option>
+            <option value="pt">Portugais</option>
+            <option value="ru">Russe</option>
+            <option value="ja">Japonais</option>
+            <option value="ko">Coréen</option>
+            <option value="zh">Chinois</option>
+            <option value="ar">Arabe</option>
+            <option value="tr">Turc</option>
+            <option value="pl">Polonais</option>
+            <option value="nl">Néerlandais</option>
+            <option value="sv">Suédois</option>
+            <option value="no">Norvégien</option>
+            <option value="da">Danois</option>
+            <option value="fi">Finnois</option>
+            <option value="cs">Tchèque</option>
+            <option value="hu">Hongrois</option>
+            <option value="ro">Roumain</option>
+            <option value="bg">Bulgare</option>
+            <option value="hr">Croate</option>
+            <option value="sk">Slovaque</option>
+            <option value="sl">Slovène</option>
+            <option value="et">Estonien</option>
+            <option value="lv">Letton</option>
+            <option value="lt">Lituanien</option>
+            <option value="mt">Maltais</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="viewers-filter">Nombre de viewers</label>
+          <select id="viewers-filter" class="filter-select" [(ngModel)]="filters.minViewers" (change)="onFilterChange()">
+            <option value="">Peu importe</option>
+            <option value="0">Moins de 10 viewers</option>
+            <option value="10">10+ viewers</option>
+            <option value="100">100+ viewers</option>
+            <option value="500">500+ viewers</option>
+            <option value="1000">1K+ viewers</option>
+            <option value="5000">5K+ viewers</option>
+            <option value="10000">10K+ viewers</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="streamer-filter">Nom du streamer</label>
+          <input 
+            id="streamer-filter" 
+            type="text"
+            class="filter-input"
+            placeholder="Rechercher un streamer spécifique..."
+            [(ngModel)]="filters.streamerName"
+            (input)="onStreamerSearchChange()"
+          >
+        </div>
+
+        <div class="filter-actions">
+          <button class="btn btn-primary" (click)="discoverStreamWithFilters()" [disabled]="isLoading">
+            <span class="icon-search">🔍</span>
+            {{ isLoading ? 'Recherche...' : 'Chercher' }}
+          </button>
+          <button class="btn btn-secondary" (click)="clearFilters()">
+            <span class="icon-clear">✨</span>
+            Effacer
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Erreur -->
+    <div *ngIf="error" class="alert alert-danger">
+      <span class="icon-error">⚠️</span>
+      {{ error }}
+      <button class="btn-close" (click)="error = null">×</button>
+    </div>
+
+    <!-- État de chargement -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Recherche d'un nouveau stream...</p>
+    </div>
+
+    <!-- Stream découvert -->
+    <div *ngIf="currentStream && !isLoading" class="stream-card">
+      <div class="stream-thumbnail">
+        <img 
+          [src]="currentStream.thumbnailUrl" 
+          [alt]="currentStream.titre"
+          class="thumbnail-image"
+          onerror="this.src='https://via.placeholder.com/320x180/1a1a2e/ffffff?text=Pas+d%27image'"
+        >
+        <div class="stream-overlay">
+          <div class="viewer-count">
+            <span class="icon-viewers">👁️</span>
+            {{ formatViewerCount(currentStream.nbViewers) }}
+          </div>
+          <div class="live-indicator">
+            <span class="live-dot"></span>
+            LIVE
+          </div>
+        </div>
+      </div>
+
+      <div class="stream-content">
+        <div class="stream-header">
+          <h2 class="stream-title">{{ currentStream.titre }}</h2>
+          <div class="stream-meta">
+            <span class="streamer-name">{{ currentStream.streamerName }}</span>
+            <span class="divider">•</span>
+            <span class="game-name">{{ currentStream.jeu }}</span>
+          </div>
+        </div>
+
+        <div class="stream-tags">
+          <span class="tag tag-category">{{ currentStream.categorie }}</span>
+          <span class="tag tag-language">{{ currentStream.langue }}</span>
+          <span *ngIf="currentStream.pays" class="tag tag-country">{{ currentStream.pays }}</span>
+        </div>
+
+        <div class="stream-actions">
+          <button 
+            class="btn btn-primary btn-large"
+            (click)="openStream()"
+          >
+            <span class="icon-play">▶️</span>
+            Regarder le Stream
+          </button>
+
+          <button 
+            *ngIf="isAuthenticated"
+            class="btn btn-secondary btn-large"
+            [class.btn-favorited]="isFavorite"
+            (click)="toggleFavorite()"
+          >
+            <span class="icon-heart">{{ isFavorite ? '❤️' : '🤍' }}</span>
+            {{ isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Boutons d'action principaux -->
+    <div class="discovery-actions">
+      <button 
+        class="btn btn-secondary btn-large"
+        (click)="discoverStream()"
+        [disabled]="isLoading"
+      >
+        <span class="icon-next">🔄</span>
+        {{ isLoading ? 'Recherche...' : 'Découvrir un autre stream' }}
+      </button>
+      
+      <button 
+        class="btn btn-warning btn-medium"
+        (click)="toggleHistoryPanel()"
+        [disabled]="getHistoryStats().viewedCount === 0"
+        title="Voir l'historique des streams découverts"
+      >
+        <span class="icon-history">�</span>
+        Historique ({{ getHistoryStats().viewedCount }})
+      </button>
+    </div>
+
+    <!-- Message si pas authentifié -->
+    <div *ngIf="!isAuthenticated" class="auth-notice">
+      <div class="notice-content">
+        <span class="icon-info">ℹ️</span>
+        <div>
+          <h3>Connectez-vous pour plus de fonctionnalités</h3>
+          <p>Ajoutez des streamers à vos favoris et retrouvez-les facilement !</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📋 Slide Panel Historique -->
+  <div class="history-panel" [class.open]="showHistoryPanel">
+    <div class="history-header">
+      <h3>
+        <span class="icon-history">📋</span>
+        Historique des streams
+      </h3>
+      <button class="btn-close" (click)="toggleHistoryPanel()">×</button>
+    </div>
+    
+    <div class="history-content">
+      <div *ngIf="getViewHistory().length === 0" class="empty-history">
+        <span class="icon-empty">🎯</span>
+        <p>Aucun stream dans l'historique</p>
+        <small>Découvrez des streams pour les voir apparaître ici !</small>
+      </div>
+      
+      <div *ngIf="getViewHistory().length > 0" class="history-list">
+        <div 
+          *ngFor="let stream of getViewHistory()" 
+          class="history-item"
+          (click)="goToHistoryStream(stream.streamerName)"
+        >
+          <img 
+            [src]="stream.thumbnailUrl" 
+            [alt]="stream.streamerName"
+            class="stream-thumbnail"
+            loading="lazy"
+          >
+          <div class="stream-info">
+            <h4>{{ stream.streamerName }}</h4>
+            <p class="game-name">{{ stream.gameName }}</p>
+            <div class="stream-meta">
+              <span class="viewers">👥 {{ formatViewerCount(stream.viewerCount) }}</span>
+              <span class="viewed-at">🕐 {{ getTimeAgo(stream.viewedAt) }}</span>
+            </div>
+          </div>
+          <span class="play-icon">▶️</span>
+        </div>
+      </div>
+      
+      <div *ngIf="getViewHistory().length > 0" class="history-actions">
+        <button class="btn btn-danger btn-small" (click)="resetViewHistory()">
+          <span class="icon-reset">🗑️</span>
+          Vider l'historique
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay pour fermer le panel -->
+  <div 
+    *ngIf="showHistoryPanel" 
+    class="history-overlay"
+    (click)="toggleHistoryPanel()"
+  ></div>
+</div>

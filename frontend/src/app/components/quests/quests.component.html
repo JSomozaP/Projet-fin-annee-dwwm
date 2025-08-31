@@ -1,0 +1,99 @@
+<!-- Modal Overlay -->
+<div class="quests-modal-overlay" (click)="closeQuests()" *ngIf="isOpen">
+  <div class="quests-modal" (click)="$event.stopPropagation()">
+    <!-- Header avec bouton fermer -->
+    <div class="quests-modal-header">
+      <div class="modal-title">
+        <h1>🏆 Système de Quêtes</h1>
+        <p class="subtitle">Accomplissez des missions pour gagner de l'XP et débloquer des récompenses !</p>
+      </div>
+      <button class="close-btn" (click)="closeQuests()">✕</button>
+    </div>
+
+<div class="quests-container">
+
+  <div class="quests-content">
+    <!-- Quêtes Quotidiennes -->
+    <section class="quest-section">
+      <h2>📅 Quêtes Quotidiennes</h2>
+      <div class="quest-grid">
+        <div *ngFor="let quest of getQuestsByType('daily')" class="quest-card daily">
+          <div class="quest-header">
+            <span class="quest-icon">{{ quest.icon }}</span>
+            <h3>{{ quest.title }}</h3>
+          </div>
+          <p class="quest-description">{{ quest.description }}</p>
+          <div class="quest-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="getProgressPercentage(quest.progress, quest.target)"></div>
+            </div>
+            <span class="progress-text">{{ quest.progress }}/{{ quest.target }}</span>
+          </div>
+          <div class="quest-reward">{{ getQuestRewardWithBoost(quest) }}</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quêtes Hebdomadaires -->
+    <section class="quest-section">
+      <h2>📆 Quêtes Hebdomadaires</h2>
+      <div class="quest-grid">
+        <div *ngFor="let quest of getQuestsByType('weekly')" class="quest-card weekly">
+          <div class="quest-header">
+            <span class="quest-icon">{{ quest.icon }}</span>
+            <h3>{{ quest.title }}</h3>
+          </div>
+          <p class="quest-description">{{ quest.description }}</p>
+          <div class="quest-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="getProgressPercentage(quest.progress, quest.target)"></div>
+            </div>
+            <span class="progress-text">{{ quest.progress }}/{{ quest.target }}</span>
+          </div>
+          <div class="quest-reward">{{ getQuestRewardWithBoost(quest) }}</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quêtes Mensuelles -->
+    <section class="quest-section">
+      <h2>🗓️ Quêtes Mensuelles</h2>
+      <div class="quest-grid">
+        <div *ngFor="let quest of getQuestsByType('monthly')" class="quest-card monthly">
+          <div class="quest-header">
+            <span class="quest-icon">{{ quest.icon }}</span>
+            <h3>{{ quest.title }}</h3>
+          </div>
+          <p class="quest-description">{{ quest.description }}</p>
+          <div class="quest-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="getProgressPercentage(quest.progress, quest.target)"></div>
+            </div>
+            <span class="progress-text">{{ quest.progress }}/{{ quest.target }}</span>
+          </div>
+          <div class="quest-reward">{{ getQuestRewardWithBoost(quest) }}</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Succès / Achievements -->
+    <section class="quest-section">
+      <h2>🏅 Succès</h2>
+      <div class="achievement-grid">
+        <div *ngFor="let achievement of achievements" 
+             class="achievement-card" 
+             [ngClass]="{'completed': achievement.completed, 'locked': !achievement.completed}"
+             [attr.data-rarity]="achievement.rarity">
+          <div class="achievement-icon">{{ achievement.icon }}</div>
+          <h3>{{ achievement.title }}</h3>
+          <p>{{ achievement.description }}</p>
+          <span *ngIf="achievement.completed" class="completed-badge">✅ Complété</span>
+          <span *ngIf="!achievement.completed && achievement.progress && achievement.target" 
+                class="progress-badge">{{ achievement.progress }}/{{ achievement.target }}</span>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+  </div>
+</div>

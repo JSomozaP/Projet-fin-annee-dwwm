@@ -1,0 +1,161 @@
+<div class="analytics-container">
+  <!-- Access pour VIP et Legendary uniquement -->
+  <div *ngIf="hasAccess; else accessDenied">
+    
+    <!-- Header avec titre et badge -->
+    <div class="analytics-header">
+      <h1 class="title">🚀 Analytique Premium</h1>
+      <div class="tier-badge" 
+           [class.badge-vip]="userTier === 'vip'"
+           [class.badge-legendary]="userTier === 'legendary'">
+        {{ userTier === 'legendary' ? '⭐ LEGENDARY' : '👑 VIP' }}
+      </div>
+    </div>
+
+    <!-- Statistiques rapides -->
+    <div class="quick-stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+          <h3>{{ analyticsData.totalStreamsWatched }}</h3>
+          <p>Streams regardés</p>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">⏱️</div>
+        <div class="stat-content">
+          <h3>{{ analyticsData.totalWatchTime }}h</h3>
+          <p>Temps de visionnage</p>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-content">
+          <h3>{{ analyticsData.completedQuests }}</h3>
+          <p>Quêtes complétées</p>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">⭐</div>
+        <div class="stat-content">
+          <h3>{{ analyticsData.totalXP | number }}</h3>
+          <p>XP Total</p>
+        </div>
+      </div>
+      
+      <div class="stat-card" *ngIf="userTier === 'legendary'">
+        <div class="stat-icon">🏆</div>
+        <div class="stat-content">
+          <h3>{{ analyticsData.achievementsUnlocked }}</h3>
+          <p>Achievements</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analytiques détaillées -->
+    <div class="detailed-analytics">
+      
+      <!-- Graphique de progression -->
+      <div class="chart-section">
+        <h2>📈 Progression des 7 derniers jours</h2>
+        <div class="progress-chart">
+          <div class="progress-bar" 
+               *ngFor="let day of analyticsData.weeklyProgress; let i = index"
+               [style.height.px]="day.value * 2">
+            <div class="bar-value">{{ day.value }}</div>
+            <div class="bar-label">{{ day.day }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Catégories préférées -->
+      <div class="categories-section">
+        <h2>🎮 Catégories favorites</h2>
+        <div class="categories-list">
+          <div class="category-item" 
+               *ngFor="let category of analyticsData.topCategories; let i = index">
+            <div class="category-rank">{{ i + 1 }}</div>
+            <div class="category-name">{{ category.name }}</div>
+            <div class="category-count">{{ category.count }}h</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Résumé mensuel -->
+    <div class="monthly-summary">
+      <h2>📅 Résumé du mois</h2>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <strong>{{ analyticsData.monthlyStats.streamsDiscovered }}</strong>
+          <span>Nouveaux streams découverts</span>
+        </div>
+        <div class="summary-item">
+          <strong>{{ analyticsData.monthlyStats.averageSessionTime }}h</strong>
+          <span>Durée moyenne de session</span>
+        </div>
+        <div class="summary-item">
+          <strong>{{ analyticsData.monthlyStats.questsCompleted }}</strong>
+          <span>Quêtes terminées</span>
+        </div>
+        <div class="summary-item">
+          <strong>{{ analyticsData.monthlyStats.xpGained | number }}</strong>
+          <span>XP gagné ce mois</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fonctionnalités Premium -->
+    <div class="premium-showcase">
+      <h2>✨ Avantages {{ userTier === 'legendary' ? 'Legendary' : 'VIP' }}</h2>
+      <div class="features-grid">
+        <div class="feature-item">
+          <div class="feature-check">✅</div>
+          <div class="feature-text">Analytiques détaillées</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-check">✅</div>
+          <div class="feature-text">Boost XP x{{ userTier === 'legendary' ? '3' : '2' }}</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-check">✅</div>
+          <div class="feature-text">Quêtes bonus quotidiennes</div>
+        </div>
+        <div class="feature-item" *ngIf="userTier === 'legendary'">
+          <div class="feature-check">✅</div>
+          <div class="feature-text">Accès anticipé aux nouvelles fonctionnalités</div>
+        </div>
+        <div class="feature-item" *ngIf="userTier === 'legendary'">
+          <div class="feature-check">✅</div>
+          <div class="feature-text">Support prioritaire</div>
+        </div>
+        <div class="feature-item" *ngIf="userTier === 'legendary'">
+          <div class="feature-check">✅</div>
+          <div class="feature-text">Badge Legendary exclusif</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Template d'accès refusé -->
+  <ng-template #accessDenied>
+    <div class="access-denied">
+      <div class="denied-content">
+        <div class="denied-icon">🔒</div>
+        <h2>Accès Premium Requis</h2>
+        <p>
+          Les analytiques avancées sont réservées aux membres VIP et Legendary.
+          <br>
+          Débloquez des insights détaillés sur votre progression et vos habitudes de visionnage !
+        </p>
+        <button class="upgrade-button" (click)="navigateToUpgrade()">
+          🚀 Passer Premium
+        </button>
+      </div>
+    </div>
+  </ng-template>
+</div>

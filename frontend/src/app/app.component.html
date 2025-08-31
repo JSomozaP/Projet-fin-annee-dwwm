@@ -1,18 +1,269 @@
-<header>
-  <h1>Twitchscovery</h1>
-  <nav>
-    <a routerLink="/home">Accueil</a>
-    <a routerLink="/discover">Découvrir</a>
-    <a routerLink="/favorites">Favoris</a>
-  </nav>
+<!-- Navigation Header -->
+<header class="navbar">
+  <div class="navbar-container">
+    <!-- Logo & Brand -->
+    <div class="navbar-brand">
+      <h1 class="brand-logo">
+        <span class="brand-name">Streamyscovery</span>
+        <span class="brand-tagline">Discover • Connect • Explore</span>
+      </h1>
+    </div>
+
+    <!-- Navigation Links (desktop) -->
+    <nav class="navbar-nav">
+      <a routerLink="/discovery" routerLinkActive="nav-active" class="nav-link" (click)="closeMobileMenu()">
+        <i class="icon-discover"></i>
+        Découvrir
+      </a>
+      <a class="nav-link" *ngIf="isAuthenticated" (click)="openQuests()">
+        <i class="icon-quest"></i>
+        Quêtes
+      </a>
+      <a routerLink="/favorites" routerLinkActive="nav-active" class="nav-link" *ngIf="isAuthenticated" (click)="closeMobileMenu()">
+        <i class="icon-heart"></i>
+        Favoris
+        <span class="badge" *ngIf="favoriteCount > 0">{{ favoriteCount }}</span>
+      </a>
+      
+      <!-- 📊 Analytics Premium - VIP et Legendary seulement -->
+      <a routerLink="/analytics" routerLinkActive="nav-active" class="nav-link analytics-link" *ngIf="isAuthenticated && hasAnalyticsAccess" (click)="closeMobileMenu()">
+        📊 Analytics
+        <span class="premium-badge">{{currentTier.badge}}</span>
+      </a>
+      
+      <a routerLink="/subscription" routerLinkActive="nav-active" class="nav-link premium-link" (click)="closeMobileMenu()">
+        🏆 Premium <span class="rotating-star">✨</span>
+      </a>
+    </nav>
+
+    <!-- User Actions -->
+    <div class="navbar-actions">
+      <ng-container *ngIf="!isAuthenticated">
+        <button class="btn btn-outline" (click)="login()">
+          <i class="icon-twitch"></i>
+          Se connecter
+        </button>
+      </ng-container>
+      
+      <ng-container *ngIf="isAuthenticated && user">
+        <div class="user-menu">
+          <div class="user-avatar">
+            <img [src]="user.avatar_url || getDefaultUserAvatar(user.username)" [alt]="user.username" (error)="onUserAvatarError($event, user.username)">
+          </div>
+          <span class="user-name clickable-username" (click)="openUserProfile()">{{ user.username }}</span>
+          <button class="btn btn-ghost" (click)="logout()">
+            <i class="icon-logout"></i>
+          </button>
+        </div>
+      </ng-container>
+    </div>
+    
+    <!-- Mobile menu button -->
+    <button class="mobile-menu-toggle" (click)="toggleMobileMenu()" [class.open]="isMobileMenuOpen">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+  </div>
 </header>
 
-<main>
-  <app-stream-viewer></app-stream-viewer>
+<!-- Mobile Navigation Menu -->
+<div class="mobile-menu" [class.open]="isMobileMenuOpen" (click)="closeMobileMenu()">
+  <div class="mobile-menu-content" (click)="$event.stopPropagation()">
+    <nav class="mobile-nav">
+      <a routerLink="/discovery" routerLinkActive="nav-active" class="mobile-nav-link" (click)="closeMobileMenu()">
+        <i class="icon-discover"></i>
+        Découvrir
+      </a>
+      <a class="mobile-nav-link" *ngIf="isAuthenticated" (click)="openQuests()">
+        <i class="icon-quest"></i>
+        Quêtes
+      </a>
+      <a routerLink="/favorites" routerLinkActive="nav-active" class="mobile-nav-link" *ngIf="isAuthenticated" (click)="closeMobileMenu()">
+        <i class="icon-heart"></i>
+        Favoris
+        <span class="badge" *ngIf="favoriteCount > 0">{{ favoriteCount }}</span>
+      </a>
+      
+      <!-- 📊 Analytics Premium - VIP et Legendary seulement -->
+      <a routerLink="/analytics" routerLinkActive="nav-active" class="mobile-nav-link analytics-link" *ngIf="isAuthenticated && hasAnalyticsAccess" (click)="closeMobileMenu()">
+        📊 Analytics
+        <span class="premium-badge">{{currentTier.badge}}</span>
+      </a>
+      
+      <a routerLink="/subscription" routerLinkActive="nav-active" class="mobile-nav-link premium-link" (click)="closeMobileMenu()">
+        🏆 Premium <span class="rotating-star">✨</span>
+      </a>
+      
+      <!-- Actions utilisateur dans le menu mobile -->
+      <div class="mobile-user-actions">
+        <ng-container *ngIf="!isAuthenticated">
+          <button class="btn btn-primary mobile-login-btn" (click)="login(); closeMobileMenu()">
+            <i class="icon-twitch"></i>
+            Se connecter
+          </button>
+        </ng-container>
+        
+        <ng-container *ngIf="isAuthenticated && user">
+          <div class="mobile-user-info">
+            <div class="mobile-user-profile" (click)="openUserProfile(); closeMobileMenu()">
+              <img [src]="user.avatar_url || getDefaultUserAvatar(user.username)" [alt]="user.username" (error)="onUserAvatarError($event, user.username)">
+              <span>{{ user.username }}</span>
+            </div>
+            <button class="btn btn-ghost mobile-logout-btn" (click)="logout(); closeMobileMenu()">
+              <i class="icon-logout"></i>
+              Déconnexion
+            </button>
+          </div>
+        </ng-container>
+      </div>
+    </nav>
+  </div>
+</div>
+
+<!-- Main Content -->
+<main class="main-content">
+  <router-outlet></router-outlet>
 </main>
 
-<footer>
-  <p>Projet de fin d'année - 2025</p>
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-brand">
+      <span class="text-muted">Streamyscovery © 2025</span>
+    </div>
+    <div class="footer-links">
+      <a href="javascript:void(0)" class="footer-link" (click)="openAbout()">À propos</a>
+      <a href="javascript:void(0)" class="footer-link" (click)="openPrivacy()">Confidentialité</a>
+      <a href="javascript:void(0)" class="footer-link" (click)="openContact()">Contact</a>
+    </div>
+  </div>
 </footer>
 
-<router-outlet />
+<!-- Composant de profil utilisateur -->
+<app-user-profile #userProfile (openQuestsEvent)="openQuests()"></app-user-profile>
+
+<!-- Composant de quêtes -->
+<app-quests #questsComponent></app-quests>
+
+<!-- Notifications de quêtes (toujours actif) -->
+<app-quest-notification></app-quest-notification>
+
+<!-- ===== MODALS FOOTER ===== -->
+
+<!-- Modal À propos -->
+<div *ngIf="showAboutModal" class="modal-overlay" (click)="closeAboutModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>🌟 À propos de Streamyscovery</h2>
+      <button class="modal-close" (click)="closeAboutModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p><strong>Streamyscovery</strong> est une plateforme innovante de découverte de streamers Twitch.</p>
+      <p>Notre mission est de connecter les spectateurs avec de nouveaux talents et d'aider les petits streamers à grandir.</p>
+      
+      <div class="about-features">
+        <h3>🎯 Fonctionnalités principales :</h3>
+        <ul>
+          <li>🔍 Découverte intelligente de streamers</li>
+          <li>❤️ Système de favoris personnalisé</li>
+          <li>🏆 Gamification avec quêtes et achievements</li>
+          <li>📊 Analytics pour streamers</li>
+          <li>🌟 Support pour les micro-streamers</li>
+        </ul>
+      </div>
+      
+      <div class="about-version">
+        <p><strong>Version:</strong> 2.0.0</p>
+        <p>Développé avec ❤️ pour la communauté streaming</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Confidentialité -->
+<div *ngIf="showPrivacyModal" class="modal-overlay" (click)="closePrivacyModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>🔒 Politique de Confidentialité</h2>
+      <button class="modal-close" (click)="closePrivacyModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <h3>Protection de vos données</h3>
+      <p>Chez Streamyscovery, nous prenons la confidentialité de vos données très au sérieux.</p>
+      
+      <div class="privacy-section">
+        <h4>📊 Données collectées :</h4>
+        <ul>
+          <li>Informations de profil Twitch (nom d'utilisateur, avatar)</li>
+          <li>Préférences de découverte et favoris</li>
+          <li>Statistiques d'utilisation anonymisées</li>
+          <li>Progression des quêtes et achievements</li>
+        </ul>
+      </div>
+      
+      <div class="privacy-section">
+        <h4>🛡️ Utilisation des données :</h4>
+        <ul>
+          <li>Amélioration de nos algorithmes de recommandation</li>
+          <li>Personnalisation de votre expérience</li>
+          <li>Analytics globales (données anonymisées)</li>
+        </ul>
+      </div>
+      
+      <div class="privacy-section">
+        <h4>🔐 Sécurité :</h4>
+        <p>Vos données sont stockées de manière sécurisée et ne sont jamais vendues à des tiers. Nous utilisons l'authentification OAuth de Twitch pour garantir la sécurité de votre compte.</p>
+      </div>
+      
+      <p class="privacy-contact">
+        Pour toute question sur notre politique de confidentialité : 
+        <strong>privacy&#64;streamyscovery.com</strong>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Contact -->
+<div *ngIf="showContactModal" class="modal-overlay" (click)="closeContactModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>📧 Nous Contacter</h2>
+      <button class="modal-close" (click)="closeContactModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>Nous sommes toujours ravis d'entendre notre communauté !</p>
+      
+      <div class="contact-methods">
+        <div class="contact-item">
+          <h4>💬 Support technique</h4>
+          <p><strong>Email:</strong> support&#64;streamyscovery.com</p>
+          <p><strong>Temps de réponse:</strong> 24-48h</p>
+        </div>
+        
+        <div class="contact-item">
+          <h4>🤝 Partenariats & Business</h4>
+          <p><strong>Email:</strong> business&#64;streamyscovery.com</p>
+          <p>Pour collaborations, sponsoring et partenariats</p>
+        </div>
+        
+        <div class="contact-item">
+          <h4>💡 Suggestions & Feedback</h4>
+          <p><strong>Email:</strong> feedback&#64;streamyscovery.com</p>
+          <p>Vos idées nous aident à nous améliorer !</p>
+        </div>
+        
+        <div class="contact-item">
+          <h4>🎮 Communauté</h4>
+          <p><strong>Discord:</strong> <a href="#" class="contact-link">discord.gg/streamyscovery</a></p>
+          <p><strong>Twitter:</strong> <a href="#" class="contact-link">&#64;Streamyscovery</a></p>
+        </div>
+      </div>
+      
+      <div class="contact-footer">
+        <p>🕒 <strong>Horaires support:</strong> Lun-Ven 9h-18h (CET)</p>
+        <p>Pour les urgences techniques, mentionnez [URGENT] dans l'objet</p>
+      </div>
+    </div>
+  </div>
+</div>

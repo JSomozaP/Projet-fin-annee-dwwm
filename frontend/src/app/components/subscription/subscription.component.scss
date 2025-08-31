@@ -1,0 +1,598 @@
+// ===== SUBSCRIPTION COMPONENT STYLES =====
+// Style glassmorphism moderne pour Streamyscovery Premium
+
+.subscription-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem 1rem;
+  
+  // Background overlay pattern
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+  }
+}
+
+// ===== HEADER SECTION =====
+.subscription-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  
+  .title {
+    font-size: 3rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 1rem;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    
+    @media (max-width: 768px) {
+      font-size: 2.2rem;
+    }
+  }
+  
+  .subtitle {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.9);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+}
+
+// ===== LOADING & ERROR STATES =====
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  color: white;
+  
+  .loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+  }
+}
+
+.error-container {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+  
+  .error-message {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 107, 107, 0.5);
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    color: white;
+    
+    .error-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+    
+    .retry-button {
+      margin-top: 1rem;
+      padding: 0.75rem 1.5rem;
+      background: rgba(255, 107, 107, 0.2);
+      border: 2px solid rgba(255, 107, 107, 0.5);
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        background: rgba(255, 107, 107, 0.3);
+        transform: translateY(-2px);
+      }
+    }
+  }
+}
+
+// ===== PLANS GRID =====
+.plans-grid {
+  display: grid;
+  gap: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  
+  // Grand écran : 4 plans en ligne
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  // Écran moyen : 2x2
+  @media (min-width: 768px) and (max-width: 1199px) {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 800px;
+  }
+  
+  // Mobile : 1 colonne
+  @media (max-width: 767px) {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+// ===== PLAN CARDS =====
+.plan-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  padding: 2rem;
+  transition: all 0.4s ease;
+  border: 2px solid transparent;
+  
+  // Effet hover global
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  }
+  
+  // Plan actuel
+  &.current-plan {
+    border-color: rgba(46, 204, 113, 0.8);
+    box-shadow: 0 0 30px rgba(46, 204, 113, 0.4);
+    
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 20px;
+      padding: 2px;
+      background: linear-gradient(45deg, #2ecc71, #27ae60);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask-composite: exclude;
+    }
+  }
+}
+
+// ===== STYLES SPÉCIFIQUES PAR PLAN =====
+.plan-free {
+  border-color: rgba(149, 165, 166, 0.6);
+  
+  &:hover {
+    border-color: rgba(149, 165, 166, 0.9);
+    box-shadow: 0 15px 35px rgba(149, 165, 166, 0.3);
+  }
+}
+
+.plan-premium {
+  border-color: rgba(52, 152, 219, 0.8);
+  
+  &:hover {
+    border-color: rgba(52, 152, 219, 1);
+    box-shadow: 0 15px 35px rgba(52, 152, 219, 0.4);
+  }
+}
+
+.plan-vip {
+  border-color: rgba(155, 89, 182, 0.8);
+  
+  &:hover {
+    border-color: rgba(155, 89, 182, 1);
+    box-shadow: 0 15px 35px rgba(155, 89, 182, 0.4);
+  }
+}
+
+.plan-legendary {
+  border-color: rgba(241, 196, 15, 0.9);
+  
+  &:hover {
+    border-color: rgba(241, 196, 15, 1);
+    box-shadow: 0 15px 35px rgba(241, 196, 15, 0.5);
+  }
+  
+  // Effet spécial pour le plan légendaire
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 22px;
+    background: linear-gradient(45deg, #f1c40f, #f39c12, #e74c3c, #9b59b6);
+    background-size: 400% 400%;
+    animation: legendaryGlow 3s ease infinite;
+    z-index: -1;
+    opacity: 0.7;
+  }
+}
+
+// ===== BADGES =====
+.plan-badge {
+  position: absolute;
+  top: -10px;
+  right: 20px;
+  background: linear-gradient(45deg, #e74c3c, #c0392b);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+  z-index: 10; // Au-dessus du liseré
+}
+
+.current-badge {
+  position: absolute;
+  top: -10px;
+  left: 20px;
+  background: linear-gradient(45deg, #2ecc71, #27ae60);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+  z-index: 10; // Au-dessus du liseré vert
+}
+
+// ===== PLAN CONTENT =====
+.plan-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  
+  .plan-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 1rem;
+  }
+  
+  .plan-price {
+    margin-bottom: 1rem;
+    
+    .price-free {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #2ecc71;
+    }
+    
+    .price-amount {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: white;
+      
+      small {
+        font-size: 1rem;
+        color: rgba(255, 255, 255, 0.7);
+        font-weight: 400;
+      }
+    }
+  }
+  
+  .plan-description {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.5;
+    font-size: 0.95rem;
+  }
+}
+
+.plan-features {
+  margin-bottom: 2rem;
+  
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .feature-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    color: rgba(255, 255, 255, 0.9);
+    
+    .feature-icon {
+      color: #2ecc71;
+      font-weight: bold;
+      margin-right: 0.75rem;
+      font-size: 1.1rem;
+    }
+  }
+}
+
+// ===== BUTTONS =====
+.plan-action {
+  margin-top: auto;
+}
+
+.plan-button {
+  width: 100%;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  
+  &:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.button-current {
+  background: rgba(46, 204, 113, 0.2);
+  color: #2ecc71;
+  border: 2px solid rgba(46, 204, 113, 0.5);
+}
+
+.button-free {
+  background: rgba(149, 165, 166, 0.2);
+  color: white;
+  border: 2px solid rgba(149, 165, 166, 0.5);
+  
+  &:hover:not(:disabled) {
+    background: rgba(149, 165, 166, 0.3);
+    border-color: rgba(149, 165, 166, 0.8);
+  }
+}
+
+.button-premium {
+  background: linear-gradient(45deg, #3498db, #2980b9);
+  color: white;
+  border: none;
+  
+  &:hover:not(:disabled) {
+    background: linear-gradient(45deg, #2980b9, #1f619e);
+  }
+}
+
+.button-vip {
+  background: linear-gradient(45deg, #9b59b6, #8e44ad);
+  color: white;
+  border: none;
+  
+  &:hover:not(:disabled) {
+    background: linear-gradient(45deg, #8e44ad, #7d3c98);
+  }
+}
+
+.button-legendary {
+  background: linear-gradient(45deg, #f1c40f, #f39c12);
+  color: #2c3e50;
+  border: none;
+  font-weight: 700;
+  
+  &:hover:not(:disabled) {
+    background: linear-gradient(45deg, #f39c12, #e67e22);
+  }
+}
+
+// ===== FOOTER =====
+.subscription-footer {
+  text-align: center;
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  
+  .footer-text {
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .footer-note {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.8rem;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+}
+
+// ===== ANIMATIONS =====
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes legendaryGlow {
+  0%, 100% { 
+    background-position: 0% 50%; 
+    opacity: 0.7;
+  }
+  50% { 
+    background-position: 100% 50%; 
+    opacity: 1;
+  }
+}
+
+// ===== RESPONSIVE DESIGN =====
+@media (max-width: 768px) {
+  .subscription-container {
+    padding: 1rem 0.5rem;
+  }
+  
+  .subscription-header {
+    margin-bottom: 2rem;
+    
+    .title {
+      font-size: 2rem;
+    }
+    
+    .subtitle {
+      font-size: 1rem;
+      padding: 0 1rem;
+    }
+  }
+  
+  .plan-card {
+    padding: 1.5rem;
+  }
+  
+  .plans-grid {
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .subscription-header .title {
+    font-size: 1.8rem;
+  }
+  
+  .plan-card {
+    padding: 1rem;
+  }
+  
+  .plan-header .plan-name {
+    font-size: 1.3rem;
+  }
+  
+  .plan-header .price-amount {
+    font-size: 1.8rem;
+  }
+}
+
+// ===== TEST BUTTONS SECTION (Development only) =====
+.test-buttons-section {
+  margin-top: 3rem;
+  margin-bottom: 2rem;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  
+  h3 {
+    color: white;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  
+  .test-description {
+    color: rgba(255, 255, 255, 0.8);
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  
+  .test-buttons-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    justify-content: center;
+    
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      max-width: 300px;
+      margin: 0 auto;
+    }
+  }
+  
+  .test-btn {
+    padding: 1rem 1.5rem;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+    
+    &:hover::before {
+      left: 100%;
+    }
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+    
+    &.active {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    }
+    
+    // Plan-specific colors
+    &.test-free {
+      background: linear-gradient(135deg, #6B73FF 0%, #000DFF 100%);
+      color: white;
+      
+      &.active {
+        box-shadow: 0 0 20px rgba(107, 115, 255, 0.5);
+      }
+    }
+    
+    &.test-premium {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+      
+      &.active {
+        box-shadow: 0 0 20px rgba(56, 239, 125, 0.5);
+      }
+    }
+    
+    &.test-vip {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      
+      &.active {
+        box-shadow: 0 0 20px rgba(118, 75, 162, 0.5);
+      }
+    }
+    
+    &.test-legendary {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+      
+      &.active {
+        box-shadow: 0 0 20px rgba(245, 87, 108, 0.5);
+      }
+    }
+    
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      
+      &:hover {
+        transform: none;
+      }
+    }
+  }
+}

@@ -1,9 +1,28 @@
 # Dependencies
 node_modules/
 npm-debug.log*
+backup-copilot.sh
 
-# Environment variables
+# Environment variables - SÉCURITÉ CRITIQUE
 .env
+backend/.env
+backend/.env.local
+frontend/.env
+*.env
+
+# Fichiers avec vraies clés API - NE JAMAIS COMMITTER
+**/*.local.ts
+**/environment.local.ts
+backend/.env.local
+frontend/src/environments/environment.local.ts
+
+# Configuration files with secrets
+**/environment.ts
+**/environment.prod.ts
+
+# MÉMO DÉMARRAGE RAPIDE:
+# Backend:  cd backend/ && cp .env.local .env && npm start
+# Frontend: cd frontend/src/environments/ && cp environment.local.ts environment.ts && cd ../../.. && ng serve
 
 # Logs
 logs
