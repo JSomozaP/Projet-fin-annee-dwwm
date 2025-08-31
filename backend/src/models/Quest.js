@@ -1,3 +1,15 @@
+/**
+ * Streamyscovery - Modèle de quête
+ * Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.
+ * 
+ * Ce modèle gère les quêtes du système de gamification,
+ * incluant les types, catégories et récompenses XP.
+ * 
+ * @author Jeremy Somoza
+ * @project Streamyscovery
+ * @date 2025
+ */
+
 const { pool } = require('../config/database');
 
 class Quest {
@@ -7,13 +19,13 @@ class Quest {
     this.description = data.description;
     this.type = data.type; // 'daily', 'weekly', 'monthly', 'achievement'
     this.category = data.category;
-    this.xpReward = data.xp_reward;
-    this.badgeReward = data.badge_reward;
+    this.xpReward = data.xpReward; // Nom correct de la colonne
+    this.badgeReward = data.badgeReward; // Nom correct de la colonne
     this.requirement = data.requirement;
     this.conditions = typeof data.conditions === 'string' ? JSON.parse(data.conditions) : data.conditions;
-    this.isActive = data.is_active;
-    this.dateCreation = data.date_creation;
-    this.dateModification = data.date_modification;
+    this.isActive = data.isActive; // Nom correct de la colonne
+    this.dateCreation = data.createdAt; // Nom correct de la colonne
+    this.dateModification = data.updatedAt; // Nom correct de la colonne
   }
 
   // Créer une nouvelle quête
@@ -94,7 +106,7 @@ class Quest {
       if (options.where) {
         const conditions = [];
         if (options.where.isActive !== undefined) {
-          conditions.push('is_active = ?');
+          conditions.push('isActive = ?');
           params.push(options.where.isActive);
         }
         if (options.where.type) {

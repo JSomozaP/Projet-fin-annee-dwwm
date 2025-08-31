@@ -1,3 +1,15 @@
+/**
+ * Streamyscovery - Composant profil utilisateur
+ * Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.
+ * 
+ * Ce composant gère l'affichage et la modification du profil utilisateur,
+ * incluant les statistiques, niveaux et abonnements premium.
+ * 
+ * @author Jeremy Somoza
+ * @project Streamyscovery
+ * @date 2025
+ */
+
 import { Component, OnInit, EventEmitter, Output, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -63,8 +75,8 @@ interface Badge {
         <!-- Progression XP -->
         <div class="xp-section">
           <div class="xp-info">
-            <span class="current-xp">{{ userProfile?.currentXP }} / {{ userProfile?.nextLevelXP }} XP</span>
-            <span class="next-level">Vers le niveau {{ (userProfile?.level || 0) + 1 }}</span>
+            <span class="current-xp">{{ userProfile?.currentXP }} XP</span>
+            <span class="next-level">Niveau {{ (userProfile?.level || 0) + 1 }} : {{ userProfile?.nextLevelXP }} XP</span>
           </div>
           <div class="xp-bar">
             <div class="xp-fill" [style.width.%]="getXPPercentage()"></div>
@@ -667,12 +679,8 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   }
 
   getXPPercentage(): number {
-    if (!this.userProfile || !this.userProfile.nextLevelXP) return 0;
-    
-    const percentage = (this.userProfile.currentXP / this.userProfile.nextLevelXP) * 100;
-    
-    // Limiter le pourcentage à 100% maximum pour éviter la jauge qui déborde
-    return Math.min(percentage, 100);
+    if (!this.userProfile) return 0;
+    return (this.userProfile.currentXP / this.userProfile.nextLevelXP) * 100;
   }
 
   getXPBoostPercentage(): number {

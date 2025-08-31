@@ -1,6 +1,9 @@
 {
   "name": "streamyscovery-frontend",
   "version": "1.0.0",
+  "description": "Application frontend Streamyscovery - Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.",
+  "author": "Jeremy Somoza",
+  "license": "PROPRIETARY",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

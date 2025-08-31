@@ -1,7 +1,9 @@
 {
   "name": "streamyscovery-backend",
   "version": "1.0.0",
-  "description": "Backend API pour Streamyscovery",
+  "description": "Backend API pour Streamyscovery - Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.",
+  "author": "Jeremy Somoza",
+  "license": "PROPRIETARY",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -14,8 +16,6 @@
     "node",
     "express"
   ],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "axios": "^1.6.2",
     "bcryptjs": "^2.4.3",

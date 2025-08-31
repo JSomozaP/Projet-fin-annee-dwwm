@@ -1,8 +1,20 @@
+/**
+ * Streamyscovery - Discovery Component
+ * Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.
+ * 
+ * Composant principal de découverte de streams avec filtres avancés.
+ * Intègre le système de quêtes et les notifications de completion.
+ * 
+ * @author Jeremy Somoza
+ * @project Streamyscovery
+ * @date 2025
+ */
+
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { StreamService, Stream } from '../../services/stream.service';
+import { StreamService, Stream, CompletedQuest } from '../../services/stream.service';
 import { FavoriteService } from '../../services/favorite.service';
 import { AuthService } from '../../services/auth.service';
 import { UserProgressionService } from '../../services/user-progression.service';
@@ -110,9 +122,20 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
             // 📝 Marquer automatiquement le stream comme vu
             this.streamService.markStreamAsViewed(this.currentStream);
             
-            // Le tracking est déjà fait côté backend
+            // 🎯 Tracker la découverte du stream pour les quêtes
             if (this.isAuthenticated) {
+              this.progressionService.trackStreamDiscovery(
+                this.currentStream.streamerId,
+                this.currentStream.streamerName,
+                this.currentStream.nbViewers,
+                this.currentStream.jeu
+              );
               this.checkIfFavorite();
+            }
+
+            // 🎉 Traiter les quêtes complétées retournées par le backend
+            if (response.questsCompleted && response.questsCompleted.length > 0) {
+              this.handleCompletedQuests(response.questsCompleted);
             }
           } else {
             this.error = 'Aucun stream trouvé';
@@ -404,10 +427,22 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
             // 📝 Marquer automatiquement le stream comme vu
             this.streamService.markStreamAsViewed(this.currentStream);
             
-            // Le tracking est déjà fait côté backend
+            // 🎯 Tracker la découverte du stream pour les quêtes
             if (this.isAuthenticated) {
-              this.checkIfFavorite();
+              this.progressionService.trackStreamDiscovery(
+                this.currentStream.streamerId,
+                this.currentStream.streamerName,
+                this.currentStream.nbViewers,
+                this.currentStream.jeu
+              );
             }
+            
+            // 🎉 Traiter les quêtes complétées retournées par le backend
+            if (response.questsCompleted && response.questsCompleted.length > 0) {
+              this.handleCompletedQuests(response.questsCompleted);
+            }
+            
+            this.checkIfFavorite();
           } else {
             this.error = response.error || 'Aucun stream trouvé avec ces critères';
           }
@@ -521,5 +556,24 @@ export class DiscoveryComponent implements OnInit, OnDestroy {
   // 📈 Formater le nombre de viewers
   formatViewerCount(count: number): string {
     return this.streamService.formatViewerCount(count);
+  }
+
+  // 🎉 Traiter les quêtes complétées retournées par le backend
+  private handleCompletedQuests(completedQuests: CompletedQuest[]) {
+    console.log(`🎉 ${completedQuests.length} quête(s) complétée(s) reçue(s) du backend:`, completedQuests);
+    
+    completedQuests.forEach(quest => {
+      // Émettre une notification pour chaque quête complétée
+      this.progressionService.emitQuestNotification({
+        id: quest.id,
+        questTitle: quest.title,
+        questDescription: quest.description,
+        reward: `+${quest.xpReward} XP`,
+        type: 'quest_completed' as any,
+        timestamp: new Date()
+      });
+      
+      console.log(`🏆 Notification émise pour: ${quest.title} (+${quest.xpReward} XP)`);
+    });
   }
 }

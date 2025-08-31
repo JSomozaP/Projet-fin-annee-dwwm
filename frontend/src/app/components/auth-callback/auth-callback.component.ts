@@ -1,3 +1,15 @@
+/**
+ * Streamyscovery - Composant de callback d'authentification
+ * Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.
+ * 
+ * Ce composant gère le retour de l'authentification OAuth Twitch
+ * et la redirection vers l'application après connexion.
+ * 
+ * @author Jeremy Somoza
+ * @project Streamyscovery
+ * @date 2025
+ */
+
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';

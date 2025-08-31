@@ -1,3 +1,15 @@
+/**
+ * Streamyscovery - Stream Discovery Platform
+ * Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.
+ * 
+ * Ce fichier fait partie de Streamyscovery, une plateforme de découverte de streams Twitch.
+ * Toute reproduction, distribution ou modification non autorisée est strictement interdite.
+ * 
+ * @author Jeremy Somoza
+ * @project Streamyscovery
+ * @date 2025
+ */
+
 const express = require('express');
 const cors = require('cors');
 const { testConnection } = require('./src/config/database');

@@ -1,3 +1,15 @@
+/**
+ * Streamyscovery - Service d'authentification
+ * Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.
+ * 
+ * Ce service gère l'authentification utilisateur, la gestion des tokens
+ * et la synchronisation avec l'API backend.
+ * 
+ * @author Jeremy Somoza
+ * @project Streamyscovery
+ * @date 2025
+ */
+
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';

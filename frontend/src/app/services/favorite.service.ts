@@ -1,3 +1,15 @@
+/**
+ * Streamyscovery - Service de gestion des favoris
+ * Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.
+ * 
+ * Ce service gère les streamers favoris des utilisateurs,
+ * l'ajout, la suppression et la synchronisation avec l'API.
+ * 
+ * @author Jeremy Somoza
+ * @project Streamyscovery
+ * @date 2025
+ */
+
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';

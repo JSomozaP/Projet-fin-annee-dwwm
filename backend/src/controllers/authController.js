@@ -1,3 +1,15 @@
+/**
+ * Streamyscovery - Contrôleur d'authentification
+ * Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.
+ * 
+ * Ce contrôleur gère l'authentification OAuth Twitch,
+ * la création d'utilisateurs et la gestion des tokens JWT.
+ * 
+ * @author Jeremy Somoza
+ * @project Streamyscovery
+ * @date 2025
+ */
+
 const { User } = require('../models');
 const { generateToken } = require('../middleware/auth');
 

@@ -1,3 +1,15 @@
+/**
+ * Streamyscovery - Twitch API Integration Service
+ * Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.
+ * 
+ * Service d'intégration avec l'API Twitch pour la découverte de streams.
+ * Fonctionnalités : authentification, recherche de streams, cache intelligent.
+ * 
+ * @author Jeremy Somoza
+ * @project Streamyscovery
+ * @date 2025
+ */
+
 const axios = require('axios');
 const { StreamCache } = require('../models');
 const gameCache = require('./gameCache');

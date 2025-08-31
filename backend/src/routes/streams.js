@@ -1,15 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const streamController = require('../controllers/streamController');
+const auth = require('../middleware/auth');
 
 // GET /api/streams/discover - Découvrir un stream intelligent
-router.get('/discover', streamController.discoverStream);
+router.get('/discover', auth.optionalAuth, streamController.discoverStream);
 
 // GET /api/streams/random - Obtenir un stream aléatoire
-router.get('/random', streamController.getRandomStream);
+router.get('/random', auth.optionalAuth, streamController.getRandomStream);
 
 // GET /api/streams - Obtenir tous les streams avec filtres
-router.get('/', streamController.getStreams);
+router.get('/', auth.optionalAuth, streamController.getStreams);
 
 // GET /api/streams/search-game - Rechercher un jeu
 router.get('/search-game', streamController.searchGame);

@@ -9,9 +9,9 @@
       </h1>
     </div>
 
-    <!-- Navigation Links -->
+    <!-- Navigation Links (desktop) -->
     <nav class="navbar-nav">
-      <a routerLink="/discovery" routerLinkActive="nav-active" class="nav-link">
+      <a routerLink="/discovery" routerLinkActive="nav-active" class="nav-link" (click)="closeMobileMenu()">
         <i class="icon-discover"></i>
         Découvrir
       </a>
@@ -19,19 +19,19 @@
         <i class="icon-quest"></i>
         Quêtes
       </a>
-      <a routerLink="/favorites" routerLinkActive="nav-active" class="nav-link" *ngIf="isAuthenticated">
+      <a routerLink="/favorites" routerLinkActive="nav-active" class="nav-link" *ngIf="isAuthenticated" (click)="closeMobileMenu()">
         <i class="icon-heart"></i>
         Favoris
         <span class="badge" *ngIf="favoriteCount > 0">{{ favoriteCount }}</span>
       </a>
       
       <!-- 📊 Analytics Premium - VIP et Legendary seulement -->
-      <a routerLink="/analytics" routerLinkActive="nav-active" class="nav-link analytics-link" *ngIf="isAuthenticated && hasAnalyticsAccess">
+      <a routerLink="/analytics" routerLinkActive="nav-active" class="nav-link analytics-link" *ngIf="isAuthenticated && hasAnalyticsAccess" (click)="closeMobileMenu()">
         📊 Analytics
         <span class="premium-badge">{{currentTier.badge}}</span>
       </a>
       
-      <a routerLink="/subscription" routerLinkActive="nav-active" class="nav-link premium-link">
+      <a routerLink="/subscription" routerLinkActive="nav-active" class="nav-link premium-link" (click)="closeMobileMenu()">
         🏆 Premium <span class="rotating-star">✨</span>
       </a>
     </nav>
@@ -57,8 +57,69 @@
         </div>
       </ng-container>
     </div>
+    
+    <!-- Mobile menu button -->
+    <button class="mobile-menu-toggle" (click)="toggleMobileMenu()" [class.open]="isMobileMenuOpen">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
   </div>
 </header>
+
+<!-- Mobile Navigation Menu -->
+<div class="mobile-menu" [class.open]="isMobileMenuOpen" (click)="closeMobileMenu()">
+  <div class="mobile-menu-content" (click)="$event.stopPropagation()">
+    <nav class="mobile-nav">
+      <a routerLink="/discovery" routerLinkActive="nav-active" class="mobile-nav-link" (click)="closeMobileMenu()">
+        <i class="icon-discover"></i>
+        Découvrir
+      </a>
+      <a class="mobile-nav-link" *ngIf="isAuthenticated" (click)="openQuests()">
+        <i class="icon-quest"></i>
+        Quêtes
+      </a>
+      <a routerLink="/favorites" routerLinkActive="nav-active" class="mobile-nav-link" *ngIf="isAuthenticated" (click)="closeMobileMenu()">
+        <i class="icon-heart"></i>
+        Favoris
+        <span class="badge" *ngIf="favoriteCount > 0">{{ favoriteCount }}</span>
+      </a>
+      
+      <!-- 📊 Analytics Premium - VIP et Legendary seulement -->
+      <a routerLink="/analytics" routerLinkActive="nav-active" class="mobile-nav-link analytics-link" *ngIf="isAuthenticated && hasAnalyticsAccess" (click)="closeMobileMenu()">
+        📊 Analytics
+        <span class="premium-badge">{{currentTier.badge}}</span>
+      </a>
+      
+      <a routerLink="/subscription" routerLinkActive="nav-active" class="mobile-nav-link premium-link" (click)="closeMobileMenu()">
+        🏆 Premium <span class="rotating-star">✨</span>
+      </a>
+      
+      <!-- Actions utilisateur dans le menu mobile -->
+      <div class="mobile-user-actions">
+        <ng-container *ngIf="!isAuthenticated">
+          <button class="btn btn-primary mobile-login-btn" (click)="login(); closeMobileMenu()">
+            <i class="icon-twitch"></i>
+            Se connecter
+          </button>
+        </ng-container>
+        
+        <ng-container *ngIf="isAuthenticated && user">
+          <div class="mobile-user-info">
+            <div class="mobile-user-profile" (click)="openUserProfile(); closeMobileMenu()">
+              <img [src]="user.avatar_url || getDefaultUserAvatar(user.username)" [alt]="user.username" (error)="onUserAvatarError($event, user.username)">
+              <span>{{ user.username }}</span>
+            </div>
+            <button class="btn btn-ghost mobile-logout-btn" (click)="logout(); closeMobileMenu()">
+              <i class="icon-logout"></i>
+              Déconnexion
+            </button>
+          </div>
+        </ng-container>
+      </div>
+    </nav>
+  </div>
+</div>
 
 <!-- Main Content -->
 <main class="main-content">

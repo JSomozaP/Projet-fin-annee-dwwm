@@ -1,3 +1,15 @@
+/**
+ * Streamyscovery - Service premium et tiers utilisateur
+ * Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.
+ * 
+ * Ce service gère les différents niveaux d'abonnement premium
+ * et les avantages associés (boost XP, quêtes supplémentaires).
+ * 
+ * @author Jeremy Somoza
+ * @project Streamyscovery
+ * @date 2025
+ */
+
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 

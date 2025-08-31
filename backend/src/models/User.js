@@ -1,3 +1,15 @@
+/**
+ * Streamyscovery - Modèle utilisateur
+ * Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.
+ * 
+ * Ce modèle gère les données utilisateur, l'authentification Twitch,
+ * et les interactions avec la base de données.
+ * 
+ * @author Jeremy Somoza
+ * @project Streamyscovery
+ * @date 2025
+ */
+
 const { pool } = require('../config/database');
 
 class User {

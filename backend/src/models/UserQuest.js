@@ -3,13 +3,13 @@ const { pool } = require('../config/database');
 class UserQuest {
   constructor(data) {
     this.id = data.id;
-    this.userId = data.user_id;
-    this.questId = data.quest_id;
+    this.userId = data.userId;
+    this.questId = data.questId;
     this.progress = data.progress;
-    this.isCompleted = data.is_completed;
-    this.completedAt = data.completed_at;
-    this.dateCreation = data.date_creation;
-    this.dateModification = data.date_modification;
+    this.isCompleted = data.isCompleted;
+    this.completedAt = data.completedAt;
+    this.createdAt = data.createdAt;
+    this.updatedAt = data.updatedAt;
   }
 
   // Créer une nouvelle progression de quête
@@ -18,7 +18,7 @@ class UserQuest {
     try {
       const id = require('crypto').randomUUID();
       const [result] = await connection.execute(
-        `INSERT INTO user_quests (id, user_id, quest_id, progress, is_completed) 
+        `INSERT INTO user_quests (id, userId, questId, progress, isCompleted) 
          VALUES (?, ?, ?, ?, ?)`,
         [
           id,
@@ -59,11 +59,11 @@ class UserQuest {
       
       if (options.where) {
         if (options.where.userId) {
-          query += ' AND user_id = ?';
+          query += ' AND userId = ?';
           params.push(options.where.userId);
         }
         if (options.where.questId) {
-          query += ' AND quest_id = ?';
+          query += ' AND questId = ?';
           params.push(options.where.questId);
         }
       }
@@ -87,15 +87,15 @@ class UserQuest {
         params.push(data.progress);
       }
       if (data.isCompleted !== undefined) {
-        updates.push('is_completed = ?');
+        updates.push('isCompleted = ?');
         params.push(data.isCompleted);
       }
       if (data.completedAt !== undefined) {
-        updates.push('completed_at = ?');
+        updates.push('completedAt = ?');
         params.push(data.completedAt);
       }
       
-      updates.push('date_modification = CURRENT_TIMESTAMP');
+      updates.push('updatedAt = CURRENT_TIMESTAMP');
       params.push(this.id);
       
       const [result] = await connection.execute(

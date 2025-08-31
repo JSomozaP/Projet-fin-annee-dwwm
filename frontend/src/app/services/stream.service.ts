@@ -1,3 +1,15 @@
+/**
+ * Streamyscovery - Stream Discovery Service
+ * Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.
+ * 
+ * Service de découverte de streams avec gestion d'historique et filtrage intelligent.
+ * Interface principale avec l'API backend pour la découverte de contenu.
+ * 
+ * @author Jeremy Somoza
+ * @project Streamyscovery
+ * @date 2025
+ */
+
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -34,11 +46,20 @@ export interface StreamFilters {
   excludeIds?: string[]; // IDs des streams à exclure
 }
 
+export interface CompletedQuest {
+  id: string;
+  title: string;
+  description: string;
+  xpReward: number;
+  type: string;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
   error?: string;
   message?: string; // Nouvelle propriété pour les messages informatifs
+  questsCompleted?: CompletedQuest[]; // Nouveau: quêtes complétées retournées par le backend
 }
 
 export interface ViewedStream {
@@ -64,7 +85,7 @@ export class StreamService {
   ) {}
 
   private getAuthHeaders(): HttpHeaders {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem('token');
     let headers = new HttpHeaders({
       'Content-Type': 'application/json'
     });

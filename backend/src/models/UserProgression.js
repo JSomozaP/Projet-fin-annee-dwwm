@@ -1,3 +1,15 @@
+/**
+ * Streamyscovery - Modèle de progression utilisateur
+ * Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.
+ * 
+ * Ce modèle gère la progression des utilisateurs, niveaux, XP,
+ * et les calculs de montée de niveau dans le système de gamification.
+ * 
+ * @author Jeremy Somoza
+ * @project Streamyscovery
+ * @date 2025
+ */
+
 const { pool } = require('../config/database');
 
 class UserProgression {

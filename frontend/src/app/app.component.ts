@@ -1,3 +1,15 @@
+/**
+ * Streamyscovery - Main Application Component
+ * Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.
+ * 
+ * Composant principal de l'application avec navigation responsive et gestion d'état.
+ * Intègre l'authentification, les quêtes et le système premium.
+ * 
+ * @author Jeremy Somoza
+ * @project Streamyscovery
+ * @date 2025
+ */
+
 import { Component, OnInit, OnDestroy, inject, ViewChild } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -33,6 +45,9 @@ export class AppComponent implements OnInit, OnDestroy {
   showAboutModal = false;
   showPrivacyModal = false;
   showContactModal = false;
+  
+  // État du menu burger mobile
+  isMobileMenuOpen = false;
 
   private destroy$ = new Subject<void>();
 
@@ -176,5 +191,15 @@ export class AppComponent implements OnInit, OnDestroy {
     if (this.questsComponent) {
       this.questsComponent.openQuests();
     }
+    this.closeMobileMenu(); // Fermer le menu mobile après action
+  }
+  
+  // Gestion du menu burger mobile
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+  
+  closeMobileMenu(): void {
+    this.isMobileMenuOpen = false;
   }
 }

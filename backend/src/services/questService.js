@@ -1,3 +1,15 @@
+/**
+ * Streamyscovery - Quest Management System
+ * Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.
+ * 
+ * Service de gestion des quêtes et du système de gamification.
+ * Fonctionnalités : tracking de progression, récompenses XP, système de niveaux.
+ * 
+ * @author Jeremy Somoza
+ * @project Streamyscovery
+ * @date 2025
+ */
+
 const Quest = require('../models/Quest');
 const UserQuest = require('../models/UserQuest');
 const UserProgression = require('../models/UserProgression');
@@ -7,11 +19,65 @@ class QuestService {
   // Obtenir les quêtes actives pour un utilisateur
   async getUserQuests(userId, type = null) {
     try {
-      // Pour l'instant, retourner un tableau vide
-      // À implémenter quand la base de données sera prête
-      return [];
+      console.log(`🔍 Récupération des quêtes pour l'utilisateur ${userId}, type: ${type || 'all'}`);
+      
+      // Récupérer toutes les quêtes actives (filtrées par type si spécifié)
+      let whereClause = { isActive: true };
+      if (type) {
+        whereClause.type = type;
+      }
+      
+      const availableQuests = await Quest.findAll({ where: whereClause });
+      console.log(`📋 ${availableQuests.length} quêtes disponibles trouvées`);
+      
+      if (availableQuests.length === 0) {
+        return [];
+      }
+      
+      // Récupérer les progressions existantes de l'utilisateur
+      const userQuests = [];
+      
+      for (const quest of availableQuests) {
+        // Chercher la progression existante
+        let userQuest = await UserQuest.findOne({
+          where: { userId: userId, questId: quest.id }
+        });
+        
+        // Si pas de progression existante, créer une nouvelle entrée
+        if (!userQuest) {
+          userQuest = await UserQuest.create({
+            userId: userId,
+            questId: quest.id,
+            progress: 0,
+            isCompleted: false
+          });
+        }
+        
+        // Combiner les données de la quête et de la progression
+        const combinedQuest = {
+          id: quest.id,
+          title: quest.title,
+          description: quest.description,
+          type: quest.type,
+          category: quest.category,
+          xpReward: quest.xpReward,
+          requirement: quest.requirement,
+          targetValue: quest.requirement, // Alias pour compatibilité
+          target: quest.requirement, // Alias pour compatibilité
+          progress: userQuest.progress || 0,
+          isCompleted: userQuest.isCompleted || false,
+          completedAt: userQuest.completedAt,
+          progressPercentage: Math.round((userQuest.progress || 0) / quest.requirement * 100)
+        };
+        
+        userQuests.push(combinedQuest);
+      }
+      
+      console.log(`✅ ${userQuests.length} quêtes retournées pour l'utilisateur`);
+      return userQuests;
+      
     } catch (error) {
-      console.error('Erreur getUserQuests:', error);
+      console.error('❌ Erreur getUserQuests:', error);
       return [];
     }
   }
@@ -30,16 +96,28 @@ class QuestService {
       if (!userProgression) {
         userProgression = await UserProgression.create({ userId });
       }
+
+      // Variable pour stocker le résultat des quêtes complétées
+      let questResult = { completedQuests: [] };
       
       // Mettre à jour les compteurs selon l'action
       const updates = {};
       
-      if (actionData.action === 'stream_discovered') {
+      // Traiter toutes les variantes de découverte de streams
+      if (actionData.action === 'stream_discovered' || actionData.action === 'random_stream_discovered') {
         updates.streamsDiscovered = (userProgression.streamsDiscovered || 0) + 1;
+        console.log(`🎯 Stream découvert ! Total: ${updates.streamsDiscovered}`);
+        
+        // Mettre à jour les quêtes en cours liées à la découverte
+        questResult = await this.updateActiveQuests(userId, 'stream_discovered', actionData);
       }
       
       if (actionData.action === 'favorite_added') {
         updates.favoritesAdded = (userProgression.favoritesAdded || 0) + 1;
+        console.log(`❤️ Favori ajouté ! Total: ${updates.favoritesAdded}`);
+        
+        // Mettre à jour les quêtes en cours liées aux favoris
+        questResult = await this.updateActiveQuests(userId, 'favorite_added', actionData);
       }
       
       // **NOUVEAU: Gestion de la completion de quête**
@@ -71,10 +149,10 @@ class QuestService {
         console.log(`✅ Progression mise à jour avec succès`);
       }
       
-      return true;
+      return questResult;
     } catch (error) {
       console.error('Erreur updateQuestProgress:', error);
-      return false;
+      return { completedQuests: [], error: error.message };
     }
   }
 
@@ -195,7 +273,9 @@ class QuestService {
 
   async addXP(userId, xpAmount) {
     try {
-      const userProgression = await UserProgression.findByUserId(userId);
+      const userProgression = await UserProgression.findOne({
+        where: { userId }
+      });
       if (!userProgression) {
         return null;
       }
@@ -209,7 +289,7 @@ class QuestService {
       console.log(`📊 Niveau calculé: ${levelInfo.level}, XP dans niveau: ${levelInfo.currentXP}/${levelInfo.nextLevelXP}`);
       
       // Mise à jour en base de données avec le nouveau niveau
-      const updatedProgression = await UserProgression.update(userProgression.id, {
+      const updatedProgression = await userProgression.update({
         level: levelInfo.level,
         totalXP: levelInfo.totalXP,
         currentXP: levelInfo.currentXP,
@@ -351,6 +431,155 @@ class QuestService {
         streamsDiscovered: 0,
         favoritesAdded: 0,
         questsCompleted: 0
+      };
+    }
+  }
+
+  // Nouvelle méthode pour mettre à jour les quêtes actives
+  async updateActiveQuests(userId, actionType, actionData = {}) {
+    try {
+      const UserQuest = require('../models/UserQuest');
+      const Quest = require('../models/Quest');
+      
+      console.log(`🔄 Mise à jour des quêtes actives pour ${actionType}`, actionData);
+      
+      // Récupérer toutes les quêtes actives de l'utilisateur (non complétées)
+      const activeUserQuests = await this.getUserQuests(userId);
+      
+      if (!activeUserQuests || activeUserQuests.length === 0) {
+        console.log(`📝 Aucune quête active trouvée pour l'utilisateur ${userId}`);
+        return { success: true, completedQuests: [] };
+      }
+      
+      console.log(`📋 ${activeUserQuests.length} quêtes actives trouvées`);
+      
+      const completedQuests = []; // Pour tracker les quêtes complétées
+      
+      for (const userQuest of activeUserQuests) {
+        if (userQuest.isCompleted) continue;
+        
+        let shouldUpdate = false;
+        let progressIncrement = 0;
+        
+        // Déterminer si cette quête doit être mise à jour selon l'action
+        const questTitle = userQuest.title?.toLowerCase() || '';
+        const questDescription = userQuest.description?.toLowerCase() || '';
+        
+        if (actionType === 'stream_discovered') {
+          // Quêtes liées à la découverte de streamers
+          if (questTitle.includes('découvr') || questTitle.includes('explor') || questTitle.includes('nouveau') ||
+              questDescription.includes('découvr') || questDescription.includes('explor') || questDescription.includes('streamer')) {
+            shouldUpdate = true;
+            progressIncrement = 1;
+            console.log(`🎯 Quête de découverte trouvée: "${userQuest.title}"`);
+          }
+        }
+        
+        if (actionType === 'favorite_added') {
+          // Quêtes liées aux favoris
+          if (questTitle.includes('favori') || questTitle.includes('ajout') || questTitle.includes('collection') ||
+              questDescription.includes('favori') || questDescription.includes('ajout')) {
+            shouldUpdate = true;
+            progressIncrement = 1;
+            console.log(`❤️ Quête de favoris trouvée: "${userQuest.title}"`);
+          }
+        }
+        
+        if (shouldUpdate) {
+          const newProgress = (userQuest.progress || 0) + progressIncrement;
+          const targetValue = userQuest.targetValue || userQuest.target || 1;
+          
+          console.log(`📊 Mise à jour quête "${userQuest.title}": ${userQuest.progress || 0} + ${progressIncrement} = ${newProgress}/${targetValue}`);
+          
+          // Mettre à jour la progression
+          const userQuestRecord = await UserQuest.findOne({
+            where: { userId: userId, questId: userQuest.id }
+          });
+          
+          if (userQuestRecord) {
+            const isNowCompleted = newProgress >= targetValue;
+            
+            await userQuestRecord.update({
+              progress: newProgress,
+              isCompleted: isNowCompleted,
+              completedAt: isNowCompleted ? new Date() : null
+            });
+            
+            if (isNowCompleted) {
+              console.log(`🎉 Quête "${userQuest.title}" complétée !`);
+              
+              // Ajouter les XP de récompense
+              const xpReward = this.getQuestXPReward(userQuest);
+              await this.addXP(userId, xpReward);
+              
+              console.log(`💰 +${xpReward} XP pour la completion de la quête`);
+              
+              // Ajouter à la liste des quêtes complétées
+              completedQuests.push({
+                id: userQuest.id,
+                title: userQuest.title,
+                description: userQuest.description,
+                xpReward: xpReward,
+                type: userQuest.type
+              });
+            }
+          }
+        }
+      }
+      
+      return { success: true, completedQuests };
+      
+    } catch (error) {
+      console.error('❌ Erreur updateActiveQuests:', error);
+      return { success: false, completedQuests: [], error: error.message };
+    }
+  }
+
+  // Méthode pour déterminer les XP de récompense d'une quête
+  getQuestXPReward(quest) {
+    if (quest.xpReward) return quest.xpReward;
+    
+    // XP par défaut selon le type
+    switch (quest.type) {
+      case 'daily': return 100;
+      case 'weekly': return 300;
+      case 'monthly': return 800;
+      case 'achievement': return 500;
+      default: return 50;
+    }
+  }
+
+  // Méthode pour récupérer les données de progression des quêtes
+  async getQuestProgressData(userId) {
+    try {
+      console.log(`📊 Récupération des données de progression pour ${userId}`);
+      
+      // Récupérer la progression utilisateur
+      const userProgression = await this.getUserProgression(userId);
+      
+      // Récupérer les quêtes actives de l'utilisateur
+      const activeQuests = await this.getUserQuests(userId);
+      
+      return {
+        success: true,
+        data: {
+          progression: userProgression,
+          activeQuests: activeQuests || [],
+          stats: {
+            streamsDiscovered: userProgression.streamsDiscovered || 0,
+            favoritesAdded: userProgression.favoritesAdded || 0,
+            questsCompleted: userProgression.questsCompleted || 0,
+            totalXP: userProgression.totalXP || 0,
+            level: userProgression.level || 1
+          }
+        }
+      };
+      
+    } catch (error) {
+      console.error('❌ Erreur getQuestProgressData:', error);
+      return {
+        success: false,
+        error: 'Erreur lors de la récupération des données de progression'
       };
     }
   }

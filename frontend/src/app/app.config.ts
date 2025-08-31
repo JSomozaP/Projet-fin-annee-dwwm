@@ -9,7 +9,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withInterceptors([
       (req, next) => {
-        const token = localStorage.getItem('auth_token');
+        const token = localStorage.getItem('token');
         if (token) {
           const authReq = req.clone({
             headers: req.headers.set('Authorization', `Bearer ${token}`)

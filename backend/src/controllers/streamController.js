@@ -1,3 +1,15 @@
+/**
+ * Streamyscovery - Stream Discovery Controller
+ * Copyright (c) 2025 Jeremy Somoza. Tous droits réservés.
+ * 
+ * Contrôleur principal pour la découverte de streams avec algorithme intelligent.
+ * Intègre le système de quêtes et de tracking de progression.
+ * 
+ * @author Jeremy Somoza
+ * @project Streamyscovery
+ * @date 2025
+ */
+
 const twitchService = require('../services/twitchService');
 const questService = require('../services/questService');
 
@@ -5,7 +17,9 @@ class StreamController {
   // Découvrir un stream avec la logique intelligente
   async discoverStream(req, res) {
     try {
-      const { userId } = req.user || {};
+      console.log('🔍 Debug auth - req.user:', req.user ? `ID: ${req.user.id}, Username: ${req.user.username}` : 'undefined');
+      
+      const userId = req.user?.id; // Correction: utiliser req.user.id au lieu de req.user.userId
       const { 
         gameId, 
         game, // Support nom de jeu 
@@ -51,9 +65,10 @@ class StreamController {
       }
 
       // 🎯 Tracker la découverte pour les quêtes
+      let questResult = { completedQuests: [] };
       if (userId) {
         try {
-          await questService.updateQuestProgress(userId, 'all', {
+          questResult = await questService.updateQuestProgress(userId, 'all', {
             action: 'stream_discovered',
             viewerCount: stream.nbViewers,
             gameId: stream.gameId,
@@ -67,7 +82,8 @@ class StreamController {
       res.json({
         success: true,
         data: stream,
-        message: 'Stream découvert avec succès'
+        message: 'Stream découvert avec succès',
+        questsCompleted: questResult.completedQuests || []
       });
     } catch (error) {
       console.error('Erreur dans discoverStream:', error);
